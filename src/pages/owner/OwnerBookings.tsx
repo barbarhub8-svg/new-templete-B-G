@@ -21,6 +21,7 @@ import {
   getShopStaff,
 } from '../../lib/api';
 import { generateTimeSlots, type TimeSlot } from '../../lib/slotManagement';
+import { generateWhatsAppReminderUrl } from '../../lib/whatsappService';
 import type { StaffMember } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -872,6 +873,31 @@ export default function OwnerBookings() {
                       </div>
                     );
                   })()}
+
+                  {booking.status === 'confirmed' && booking.customer_phone && (
+                    <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600" /> WhatsApp Reminder (2 hours before)
+                      </span>
+                      <a
+                        href={generateWhatsAppReminderUrl({
+                          bookingId: booking.id,
+                          customerName: booking.customer_name,
+                          customerPhone: booking.customer_phone,
+                          shopName: shop?.name || 'Salon',
+                          serviceName: (booking.services || []).map((s: any) => s.name).join(', ') || 'Service',
+                          appointmentDate: booking.final_date || booking.requested_date,
+                          appointmentTime: booking.final_time || booking.requested_time,
+                          staffName: booking.staff_name,
+                        })}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-sm transition-all"
+                      >
+                        <span>📱 Send WhatsApp Reminder</span>
+                      </a>
+                    </div>
+                  )}
 
                   {booking.status === 'suggested' && (
                     <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">

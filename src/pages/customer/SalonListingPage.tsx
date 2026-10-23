@@ -71,9 +71,25 @@ const DUMMY_SHOPS = [
     total_bookings: 310, isDemo: true, category: 'Salon',
     home_service_charge: 200,
   },
+  {
+    id: 'dummy-7', name: 'Pink City Glow Salon',
+    tagline: 'Authentic Rajasthani beauty treatments and modern styling.',
+    photo: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&h=600&fit=crop&q=90',
+    rating: 4.9, totalReviews: 120, city: 'Jaipur', address: 'Malviya Nagar, Jaipur',
+    tags: ['Bridal', 'Facial', 'Hair Cut'], homeService: true,
+    opening_time: '10:00', closing_time: '20:00', weekly_off: 'Tuesday',
+    total_bookings: 450, isDemo: true, category: 'Salon',
+    home_service_charge: 100,
+  },
 ];
 
 const CATEGORIES = ['All', 'Barbershop', 'Salon', 'Spa'];
+const PRICE_RANGES = [
+  { label: 'All Prices', min: 0, max: Infinity },
+  { label: 'Budget (Under ₹500)', min: 0, max: 500 },
+  { label: 'Mid-Range (₹500 - ₹1500)', min: 500, max: 1500 },
+  { label: 'Luxury (₹1500+)', min: 1500, max: Infinity },
+];
 const SORT_OPTIONS = [
   { value: 'rating', label: 'Top Rated' },
   { value: 'bookings', label: 'Most Popular' },
@@ -232,6 +248,7 @@ export default function SalonListingPage() {
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [city, setCity] = useState('all');
   const [category, setCategory] = useState('All');
+  const [priceRangeIndex, setPriceRangeIndex] = useState(0);
   const [homeOnly, setHomeOnly] = useState(false);
   const [minRating, setMinRating] = useState(0);
   const [sortBy, setSortBy] = useState('rating');
@@ -268,7 +285,9 @@ export default function SalonListingPage() {
   const allShops = useMemo(() => rawShops.length > 0 ? rawShops : DUMMY_SHOPS, [rawShops]);
 
   const cities = useMemo(() => {
-    return ['all', ...Array.from(new Set(allShops.map((s: any) => s.city).filter(Boolean))) as string[]];
+    const citySet = new Set(allShops.map((s: any) => s.city?.toLowerCase()).filter(Boolean));
+    const normalizedCities = Array.from(citySet).map(c => c!.charAt(0).toUpperCase() + c!.slice(1));
+    return ['all', ...normalizedCities];
   }, [allShops]);
 
   const filtered = useMemo(() => {
@@ -283,8 +302,19 @@ export default function SalonListingPage() {
         (s.category && String(s.category).toLowerCase().includes(q))
       );
     }
-    if (city !== 'all') list = list.filter(s => s.city === city);
+    if (city !== 'all') list = list.filter(s => s.city?.toLowerCase() === city.toLowerCase());
     if (category !== 'All') list = list.filter(s => (s.category || '').toLowerCase() === category.toLowerCase());
+    if (priceRangeIndex > 0) {
+      const range = PRICE_RANGES[priceRangeIndex];
+      list = list.filter(s => {
+        const services = s.services || [];
+        if (services.length === 0) return true;
+        return services.some((svc: any) => {
+          const price = Number(svc.price || 0);
+          return price >= range.min && price <= range.max;
+        });
+      });
+    }
     if (homeOnly) list = list.filter(s => s.homeService || s.home_service_available);
     if (minRating > 0) list = list.filter(s => Number(s.rating ?? s.average_rating ?? 0) >= minRating);
 
@@ -295,24 +325,25 @@ export default function SalonListingPage() {
       return 0;
     });
     return list;
-  }, [allShops, search, city, category, homeOnly, minRating, sortBy]);
+  }, [allShops, search, city, category, priceRangeIndex, homeOnly, minRating, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  useEffect(() => { setPage(1); }, [search, city, category, homeOnly, minRating, sortBy]);
+  useEffect(() => { setPage(1); }, [search, city, category, priceRangeIndex, homeOnly, minRating, sortBy]);
 
   function clearFilters() {
     setSearch('');
     setCity('all');
     setCategory('All');
+    setPriceRangeIndex(0);
     setHomeOnly(false);
     setMinRating(0);
     setSortBy('rating');
     setPage(1);
   }
 
-  const hasActiveFilters = search || city !== 'all' || category !== 'All' || homeOnly || minRating > 0;
+  const hasActiveFilters = search || city !== 'all' || category !== 'All' || priceRangeIndex > 0 || homeOnly || minRating > 0;
 
   const inputCls = 'w-full px-3 py-2.5 text-sm bg-[#0A0A0A] border border-white/12 focus:border-gold/40 text-white placeholder-white/20 rounded-xl outline-none font-inter transition-all';
 
@@ -369,7 +400,7 @@ export default function SalonListingPage() {
                 <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 font-inter">City</p>
                 <div className="relative">
                   <select value={city} onChange={e => setCity(e.target.value)}
-                    className={`${inputCls} pr-8 appearance-none cursor-pointer`}>
+                    className={`${inputCls} pr-8 appearance-none cursor-pointer ring-2 ring-gold/50`}>
                     {cities.map(c => <option key={c} value={c} className="bg-[#141414]">{c === 'all' ? 'All Cities' : c}</option>)}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25 pointer-events-none" />
@@ -385,6 +416,20 @@ export default function SalonListingPage() {
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all font-inter ${category === cat ? 'bg-gold/10 border border-gold/25 text-gold' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
                       {cat}
                       {category === cat && <CheckCircle className="w-3.5 h-3.5" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Price Range */}
+              <div className="nexora-card rounded-xl p-4">
+                <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 font-inter">Price Range</p>
+                <div className="space-y-1">
+                  {PRICE_RANGES.map((range, idx) => (
+                    <button key={range.label} onClick={() => setPriceRangeIndex(idx)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all font-inter ${priceRangeIndex === idx ? 'bg-gold/10 border border-gold/25 text-gold' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
+                      {range.label}
+                      {priceRangeIndex === idx && <CheckCircle className="w-3.5 h-3.5" />}
                     </button>
                   ))}
                 </div>
@@ -479,6 +524,7 @@ export default function SalonListingPage() {
                 {search && <span className="flex items-center gap-1.5 px-3 py-1 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold font-inter">"{search}" <button onClick={() => setSearch('')}><X className="w-3 h-3" /></button></span>}
                 {city !== 'all' && <span className="flex items-center gap-1.5 px-3 py-1 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold font-inter">{city} <button onClick={() => setCity('all')}><X className="w-3 h-3" /></button></span>}
                 {category !== 'All' && <span className="flex items-center gap-1.5 px-3 py-1 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold font-inter">{category} <button onClick={() => setCategory('All')}><X className="w-3 h-3" /></button></span>}
+                {priceRangeIndex > 0 && <span className="flex items-center gap-1.5 px-3 py-1 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold font-inter">{PRICE_RANGES[priceRangeIndex].label} <button onClick={() => setPriceRangeIndex(0)}><X className="w-3 h-3" /></button></span>}
                 {homeOnly && <span className="flex items-center gap-1.5 px-3 py-1 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold font-inter">Home Service <button onClick={() => setHomeOnly(false)}><X className="w-3 h-3" /></button></span>}
                 {minRating > 0 && <span className="flex items-center gap-1.5 px-3 py-1 bg-gold/10 border border-gold/20 rounded-full text-xs text-gold font-inter">{minRating}+ Stars <button onClick={() => setMinRating(0)}><X className="w-3 h-3" /></button></span>}
               </div>

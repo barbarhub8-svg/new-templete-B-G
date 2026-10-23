@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Star, MapPin, Clock, Home, IndianRupee, ArrowLeft, ChevronRight,
@@ -13,6 +13,7 @@ import { Separator } from '../../components/ui/separator';
 import { useToast } from '../../hooks/use-toast';
 import { getShopById, getShopStaff } from '../../lib/api';
 import type { StaffMember } from '../../types';
+import SalonLightbox from '../../components/ui/Lightbox';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,97 +43,7 @@ function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md
   );
 }
 
-// ─── Lightbox ─────────────────────────────────────────────────────────────────
 
-function Lightbox({
-  photos,
-  index,
-  onClose,
-  onPrev,
-  onNext,
-}: {
-  photos: string[];
-  index: number;
-  onClose: () => void;
-  onPrev: () => void;
-  onNext: () => void;
-}) {
-  // Keyboard navigation
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') onPrev();
-      if (e.key === 'ArrowRight') onNext();
-    }
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose, onPrev, onNext]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      {/* Close */}
-      <button
-        onClick={onClose}
-        className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors z-10"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      {/* Counter */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/10 text-white text-sm px-3 py-1 rounded-full backdrop-blur-sm">
-        {index + 1} / {photos.length}
-      </div>
-
-      {/* Prev */}
-      {photos.length > 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onPrev(); }}
-          className="absolute left-4 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Image */}
-      <img
-        src={photos[index]}
-        alt={`Photo ${index + 1}`}
-        onClick={(e) => e.stopPropagation()}
-        className="max-w-[90vw] max-h-[85vh] object-contain rounded-lg shadow-2xl"
-      />
-
-      {/* Next */}
-      {photos.length > 1 && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onNext(); }}
-          className="absolute right-4 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Thumbnails */}
-      {photos.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-[90vw] px-2">
-          {photos.map((src, i) => (
-            <button
-              key={i}
-              onClick={(e) => { e.stopPropagation(); }}
-              className={`flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
-                i === index ? 'border-white scale-110' : 'border-white/30 opacity-60 hover:opacity-100'
-              }`}
-            >
-              <img src={src} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ─── Service Checkbox Card ────────────────────────────────────────────────────
 
@@ -195,6 +106,14 @@ export default function ShopDetailsPage() {
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  // Staff Lightbox
+  const [staffLightboxOpen, setStaffLightboxOpen] = useState(false);
+  const [staffLightboxIndex, setStaffLightboxIndex] = useState(0);
+
+  const staffPhotos = useMemo(() => {
+    return staffList.map(s => s.profile_photo_url).filter(Boolean) as string[];
+  }, [staffList]);
 
   // Sidebar service selection
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
@@ -297,16 +216,25 @@ export default function ShopDetailsPage() {
   return (
     <div className="min-h-screen pb-24 bg-background">
 
-      {/* Lightbox */}
-      {lightboxOpen && photos.length > 0 && (
-        <Lightbox
-          photos={photos}
-          index={lightboxIndex}
-          onClose={closeLightbox}
-          onPrev={prevPhoto}
-          onNext={nextPhoto}
-        />
-      )}
+      {/* Lightbox for Salon Photos */}
+      <SalonLightbox
+        images={photos}
+        currentIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        onIndexChange={setLightboxIndex}
+        title={shop?.name}
+      />
+
+      {/* Lightbox for Staff Photos */}
+      <SalonLightbox
+        images={staffPhotos}
+        currentIndex={staffLightboxIndex}
+        isOpen={staffLightboxOpen}
+        onClose={() => setStaffLightboxOpen(false)}
+        onIndexChange={setStaffLightboxIndex}
+        title="Specialist Team"
+      />
 
       {/* ── Back header ─────────────────────────────────────────────────────── */}
       <div className="bg-white border-b border-border sticky top-[57px] z-40 shadow-sm">

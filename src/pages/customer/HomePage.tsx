@@ -326,7 +326,7 @@ export default function HomePage() {
               <span className="text-gold-gradient italic">Meets Luxury</span>
             </h1>
             <p className="text-white/50 text-lg font-inter font-light leading-relaxed max-w-xl">
-              Book appointments at premium salons and barbershops. Curated for discerning clients — instant booking, verified quality.
+              Book appointments at premier salons and barbershops. Curated for discerning clients — seamless booking, verified quality.
             </p>
           </div>
 
@@ -338,7 +338,7 @@ export default function HomePage() {
               </div>
               <input
                 type="text"
-                placeholder="Search salon, city or service…"
+                placeholder="Search salons, locations, or services…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchNavigate()}
@@ -369,8 +369,8 @@ export default function HomePage() {
           {/* Stats */}
           <div className="flex flex-wrap gap-4 mb-12">
             {[
-              { label: '50+ Premium Salons', icon: Store },
-              { label: '10,000+ Happy Clients', icon: Users },
+              { label: '50+ Premier Salons', icon: Store },
+              { label: '10,000+ Satisfied Clients', icon: Users },
               { label: '24/7 Easy Booking', icon: Zap },
             ].map(({ label, icon: Icon }) => (
               <div key={label} className="flex items-center gap-2.5 border border-gold/20 bg-gold/5 rounded-full px-4 py-2">
@@ -392,10 +392,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x md:divide-white/8">
             {[
-              { value: '50+', label: 'Premium Salons', icon: Store },
+              { value: '50+', label: 'Premier Salons', icon: Store },
               { value: '10K+', label: 'Bookings Completed', icon: Award },
               { value: '4.9★', label: 'Average Rating', icon: Star },
-              { value: '₹20', label: 'Referral Reward', icon: IndianRupee },
+              { value: '₹20', label: 'Referral Bonus', icon: IndianRupee },
             ].map(({ value, label, icon: Icon }, i) => (
               <div key={label} className="flex items-center gap-4 md:px-8 first:pl-0 last:pr-0"
                 style={{ opacity: statsInView ? 1 : 0, transform: statsInView ? 'translateY(0)' : 'translateY(16px)', transition: `opacity 0.5s ease ${i * 0.1}s, transform 0.5s ease ${i * 0.1}s` }}>
@@ -518,8 +518,8 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
         <div className="text-center mb-12">
           <div className="gold-divider w-10 mx-auto mb-5" />
-          <h2 className="font-playfair font-bold text-white text-3xl sm:text-4xl mb-3">What Clients Say</h2>
-          <p className="text-white/35 text-sm font-inter">Real experiences from real Nexora customers</p>
+          <h2 className="font-playfair font-bold text-white text-3xl sm:text-4xl mb-3">Client Testimonials</h2>
+          <p className="text-white/35 text-sm font-inter">Experiences from our valued clientele</p>
         </div>
         <TestimonialCarousel />
         <div className="grid sm:grid-cols-3 gap-4 mt-6">
@@ -555,9 +555,9 @@ export default function HomePage() {
               </p>
               <div className="flex items-center gap-4 mt-5">
                 {[
-                  { icon: Smile, label: 'Free to join' },
-                  { icon: Zap, label: 'Go live in 24h' },
-                  { icon: Users, label: '1000+ customers' },
+                  { icon: Smile, label: 'No joining fee' },
+                  { icon: Zap, label: 'Get listed in 24h' },
+                  { icon: Users, label: '1000+ trusted clients' },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-1.5 text-xs text-white/40 font-inter">
                     <Icon className="w-3.5 h-3.5 text-gold/60" />
@@ -569,11 +569,11 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
               <button type="button" onClick={() => navigate('/owner/register')}
                 className="px-8 py-3.5 rounded-xl bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-sm shadow-gold hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
-                Get Started Free
+                Register Your Salon
               </button>
               <button type="button" onClick={() => navigate('/login')}
                 className="px-8 py-3.5 rounded-xl bg-transparent text-gold font-semibold text-sm border border-gold/40 hover:border-gold hover:bg-gold/5 transition-all whitespace-nowrap">
-                Sign In
+                Owner Login
               </button>
             </div>
           </div>

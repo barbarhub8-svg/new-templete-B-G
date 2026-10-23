@@ -37,7 +37,7 @@ export default function CustomerLayout() {
                   Nexora
                 </p>
                 <p className="text-[9px] tracking-[0.25em] uppercase text-white/40 mt-0.5 font-inter">
-                  Salonos
+                  Salon Services
                 </p>
               </div>
             </button>
@@ -147,7 +147,7 @@ export default function CustomerLayout() {
               </div>
               <div>
                 <p className="font-playfair font-bold text-sm tracking-widest uppercase text-gold">Nexora</p>
-                <p className="text-[9px] tracking-[0.2em] uppercase text-white/30">Salonos · Premium Grooming</p>
+                <p className="text-[9px] tracking-[0.2em] uppercase text-white/30">Nexora · Salon Services · Premium Grooming</p>
               </div>
             </div>
             <div className="gold-divider hidden md:block flex-1 mx-8" />
