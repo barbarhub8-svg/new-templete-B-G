@@ -1,0 +1,8 @@
+{
+  "name": "Nexora Salonos - Premium Salon Booking",
+  "description": "Book appointments at India's finest salons and barbershops. Premium grooming, curated for discerning clients. In-shop visits or home service.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
