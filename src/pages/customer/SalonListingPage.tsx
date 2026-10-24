@@ -391,7 +391,7 @@ export default function SalonListingPage() {
                   <p className="font-playfair font-semibold text-white">Filters</p>
                 </div>
                 {hasActiveFilters && (
-                  <button onClick={clearFilters} className="text-xs text-red-400 hover:text-red-300 font-inter transition-colors">Clear all</button>
+                  <button onClick={clearFilters} className="text-xs text-red-400 hover:text-red-300 font-inter transition-colors px-2 py-1 border border-red-500/20 rounded-md bg-red-500/5 hover:bg-red-500/10">Clear all</button>
                 )}
               </div>
 

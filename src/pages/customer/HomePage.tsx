@@ -7,6 +7,7 @@ import {
   Quote, Smile, IndianRupee, Smartphone
 } from 'lucide-react';
 import { getApprovedShops } from '@/lib/api';
+import { FeaturedOffersCarousel } from '@/components/ui/FeaturedOffersCarousel';
 import salonInterior from '@/assets/salon-interior.jpg';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
@@ -364,6 +365,10 @@ export default function HomePage() {
               className="bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-sm px-8 py-4 rounded-2xl transition-all shadow-gold hover:scale-[1.02] whitespace-nowrap">
               Search
             </button>
+          </div>
+
+          <div className="mb-12">
+            <FeaturedOffersCarousel />
           </div>
 
           {/* Stats */}

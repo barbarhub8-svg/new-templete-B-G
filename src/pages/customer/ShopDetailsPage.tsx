@@ -111,6 +111,10 @@ export default function ShopDetailsPage() {
   const [staffLightboxOpen, setStaffLightboxOpen] = useState(false);
   const [staffLightboxIndex, setStaffLightboxIndex] = useState(0);
 
+  // Portfolio Lightbox
+  const [portfolioLightboxOpen, setPortfolioLightboxOpen] = useState(false);
+  const [portfolioImages, setPortfolioImages] = useState<string[]>([]);
+
   const staffPhotos = useMemo(() => {
     return staffList.map(s => s.profile_photo_url).filter(Boolean) as string[];
   }, [staffList]);
@@ -234,6 +238,15 @@ export default function ShopDetailsPage() {
         onClose={() => setStaffLightboxOpen(false)}
         onIndexChange={setStaffLightboxIndex}
         title="Specialist Team"
+      />
+
+      {/* Lightbox for Portfolio */}
+      <SalonLightbox
+        images={portfolioImages}
+        currentIndex={0}
+        isOpen={portfolioLightboxOpen}
+        onClose={() => setPortfolioLightboxOpen(false)}
+        title="Stylist Portfolio"
       />
 
       {/* ── Back header ─────────────────────────────────────────────────────── */}
@@ -545,13 +558,13 @@ export default function ShopDetailsPage() {
                   </Card>
                 )}
 
-                {/* Rating snapshot */}
+                {/* Rating snapshot & Recent Reviews */}
                 {reviews.length > 0 && (
                   <Card className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="font-semibold text-lg flex items-center gap-2">
                         <Star className="w-5 h-5 text-amber-500" />
-                        Reviews
+                        Customer Reviews
                       </h2>
                       <button
                         onClick={() => setActiveTab('reviews')}
@@ -571,7 +584,7 @@ export default function ShopDetailsPage() {
                       </div>
                     </div>
                     <div className="space-y-4">
-                      {reviews.slice(0, 2).map((review: any) => (
+                      {reviews.slice(0, 3).map((review: any) => (
                         <ReviewCard key={review.id} review={review} />
                       ))}
                     </div>
@@ -711,15 +724,33 @@ export default function ShopDetailsPage() {
                           )}
                         </div>
 
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-4 w-full hover:bg-primary hover:text-white"
-                          onClick={() => navigate(`/shop/${shop.id}/book?staffId=${staff.id}`)}
-                        >
-                          <Scissors className="w-3.5 h-3.5 mr-1.5" />
-                          Book Appointment with {staff.full_name.split(' ')[0]}
-                        </Button>
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 hover:bg-primary hover:text-white"
+                            onClick={() => navigate(`/shop/${shop.id}/book?staffId=${staff.id}`)}
+                          >
+                            <Scissors className="w-3.5 h-3.5 mr-1.5" />
+                            Book
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 hover:bg-primary hover:text-white"
+                            onClick={() => {
+                              const mockPortfolio = [
+                                'https://images.unsplash.com/photo-1595476108420-1a1a72d3f7f8?w=900&h=600&fit=crop',
+                                'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&h=600&fit=crop'
+                              ];
+                              setPortfolioImages(mockPortfolio);
+                              setPortfolioLightboxOpen(true);
+                            }}
+                          >
+                            <Grid3X3 className="w-3.5 h-3.5 mr-1.5" />
+                            Portfolio
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
