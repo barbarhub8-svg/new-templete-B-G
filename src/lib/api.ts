@@ -3,6 +3,7 @@
 // =====================================================
 
 import { supabase } from './supabase';
+import { DUMMY_SHOP_DETAILS, DUMMY_STAFF_MEMBERS } from './dummyShopsData';
 import type { 
   Shop, 
   DbShop,
@@ -43,6 +44,10 @@ export async function getApprovedShops() {
  * Get shop by ID with full details
  */
 export async function getShopById(shopId: string) {
+  if (shopId.startsWith('dummy-') || DUMMY_SHOP_DETAILS[shopId]) {
+    return DUMMY_SHOP_DETAILS[shopId] || DUMMY_SHOP_DETAILS['dummy-1'];
+  }
+
   const { data: shop, error } = await supabase
     .from('shops')
     .select(`
@@ -54,7 +59,12 @@ export async function getShopById(shopId: string) {
     .eq('id', shopId)
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (DUMMY_SHOP_DETAILS[shopId]) {
+      return DUMMY_SHOP_DETAILS[shopId];
+    }
+    throw error;
+  }
   return shop;
 }
 
@@ -247,6 +257,35 @@ export async function createBooking(bookingData: {
   staff_role?: string | null;
   staff_avatar?: string | null;
 }) {
+  if (bookingData.shop_id?.startsWith('dummy-')) {
+    const dummyBooking = {
+      id: `booking-${Date.now()}`,
+      booking_id: `NX-${Math.floor(100000 + Math.random() * 900000)}`,
+      shop_id: bookingData.shop_id,
+      customer_name: bookingData.customer_name,
+      customer_email: bookingData.customer_email,
+      customer_phone: bookingData.customer_phone || '',
+      customer_address: bookingData.customer_address || '',
+      service_type: bookingData.service_type,
+      requested_date: bookingData.requested_date,
+      requested_time: bookingData.requested_time,
+      final_date: bookingData.requested_date,
+      final_time: bookingData.requested_time,
+      services: bookingData.services,
+      service_amount: bookingData.service_amount,
+      home_service_charge: bookingData.home_service_charge,
+      total_amount: bookingData.total_amount,
+      staff_id: bookingData.staff_id || null,
+      staff_name: bookingData.staff_name || null,
+      staff_role: bookingData.staff_role || null,
+      staff_avatar: bookingData.staff_avatar || null,
+      status: 'confirmed',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    return dummyBooking;
+  }
+
   const { referral_code_used, ...rest } = bookingData;
 
   const { data, error } = await supabase
@@ -347,6 +386,10 @@ export async function getBookingsForSlotCheck(
   date: string,
   staffId?: string | null
 ): Promise<Array<{ date: string; time: string; durationMinutes: number }>> {
+  if (shopId.startsWith('dummy-')) {
+    return [];
+  }
+
   let query = supabase
     .from('bookings')
     .select('requested_date, requested_time, final_date, final_time, services, staff_id')
@@ -671,6 +714,10 @@ export async function updateUserProfile(userId: string, updates: {
  */
 export async function getShopStaff(shopId: string, onlyActive = true): Promise<StaffMember[]> {
   try {
+    if (shopId.startsWith('dummy-') || DUMMY_STAFF_MEMBERS[shopId]) {
+      return (DUMMY_STAFF_MEMBERS[shopId] || DUMMY_STAFF_MEMBERS['dummy-1']) as StaffMember[];
+    }
+
     let query = supabase
       .from('staff')
       .select('*')
@@ -685,6 +732,9 @@ export async function getShopStaff(shopId: string, onlyActive = true): Promise<S
     if (error) throw error;
     return (data || []) as StaffMember[];
   } catch (err) {
+    if (DUMMY_STAFF_MEMBERS[shopId]) {
+      return DUMMY_STAFF_MEMBERS[shopId] as StaffMember[];
+    }
     console.warn('getShopStaff error, falling back:', err);
     return [];
   }

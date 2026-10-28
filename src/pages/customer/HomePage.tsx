@@ -4,15 +4,23 @@ import {
   Star, MapPin, Clock, Home, Store, Loader2,
   Search, X, ArrowRight, Scissors, TrendingUp, Shield, Zap,
   Sparkles, ChevronDown, Users, Award, ChevronLeft, ChevronRight,
-  Quote, Smile, IndianRupee, Smartphone
+  Quote, Smile, IndianRupee, Smartphone, Crown
 } from 'lucide-react';
 import { getApprovedShops } from '@/lib/api';
+import { JAIPUR_PREMIER_SHOPS, FEATURED_NAIL_STUDIOS } from '@/lib/dummyShopsData';
 import { FeaturedOffersCarousel } from '@/components/ui/FeaturedOffersCarousel';
-import salonInterior from '@/assets/salon-interior.jpg';
+import { RecommendedForYou } from '@/components/ui/RecommendedForYou';
+import { LimitedTimeOfferBanner } from '@/components/ui/LimitedTimeOfferBanner';
+import { HeroBackgroundCarousel } from '@/components/ui/HeroBackgroundCarousel';
+import { FeaturedNailStudios } from '@/components/ui/FeaturedNailStudios';
+import { ServiceFilterStrip } from '@/components/ui/ServiceFilterStrip';
+import { LocationAutoSuggest, CURATED_LOCATIONS, LocationOption } from '@/components/ui/LocationAutoSuggest';
+import { RecentlyViewedCarousel } from '@/components/ui/RecentlyViewedCarousel';
+import { recordSalonVisit } from '@/lib/recentlyViewed';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 
-const DUMMY_SHOPS = [
+const BASE_DEMO_SHOPS = [
   {
     id: 'dummy-1', name: 'The Royal Barberia',
     tagline: 'Luxury grooming with modern fades and classic precision styling.',
@@ -39,6 +47,8 @@ const DUMMY_SHOPS = [
   },
 ];
 
+const DUMMY_SHOPS = [...JAIPUR_PREMIER_SHOPS, ...FEATURED_NAIL_STUDIOS, ...BASE_DEMO_SHOPS];
+
 const TESTIMONIALS = [
   { name: 'Arjun Mehta', city: 'Mumbai', rating: 5, text: 'Absolutely love Nexora! Booked a haircut in under a minute and the salon was top-notch. Will never go back to calling in advance.', avatar: 'A' },
   { name: 'Priya Sharma', city: 'Delhi', rating: 5, text: 'The home service option is a game changer. The barber arrived on time and the result was salon-quality — right at my doorstep!', avatar: 'P' },
@@ -47,14 +57,62 @@ const TESTIMONIALS = [
 ];
 
 const SERVICE_CATEGORIES = [
-  { label: 'Hair Cut', icon: '✂️', count: '20+ Salons', color: 'border-gold/20 hover:border-gold/50' },
-  { label: 'Beard Styling', icon: '🪒', count: '15+ Salons', color: 'border-blue-400/20 hover:border-blue-400/50' },
-  { label: 'Hair Color', icon: '🎨', count: '12+ Salons', color: 'border-purple-400/20 hover:border-purple-400/50' },
-  { label: 'Hair Spa', icon: '💆', count: '18+ Salons', color: 'border-emerald-400/20 hover:border-emerald-400/50' },
-  { label: 'Skin Fade', icon: '💈', count: '22+ Salons', color: 'border-gold/20 hover:border-gold/50' },
-  { label: 'Facial', icon: '🧴', count: '10+ Salons', color: 'border-rose-400/20 hover:border-rose-400/50' },
-  { label: 'Home Service', icon: '🏠', count: '8+ Salons', color: 'border-teal-400/20 hover:border-teal-400/50' },
-  { label: 'Bridal', icon: '💍', count: '5+ Salons', color: 'border-amber-400/20 hover:border-amber-400/50' },
+  {
+    label: 'Hair Cut',
+    icon: '✂️',
+    count: '20+ Salons',
+    color: 'border-gold/20 hover:border-gold/50',
+    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Nails Art Studio',
+    icon: '💅',
+    count: '18+ Studios',
+    color: 'border-gold/40 hover:border-gold',
+    image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Beard Styling',
+    icon: '🪒',
+    count: '15+ Salons',
+    color: 'border-blue-400/20 hover:border-blue-400/50',
+    image: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Hair Spa',
+    icon: '💆',
+    count: '18+ Salons',
+    color: 'border-emerald-400/20 hover:border-emerald-400/50',
+    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Skin Fade',
+    icon: '💈',
+    count: '22+ Salons',
+    color: 'border-gold/20 hover:border-gold/50',
+    image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Facial & Glow',
+    icon: '🧴',
+    count: '10+ Salons',
+    color: 'border-rose-400/20 hover:border-rose-400/50',
+    image: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Hair Color',
+    icon: '🎨',
+    count: '12+ Salons',
+    color: 'border-purple-400/20 hover:border-purple-400/50',
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80&fit=crop',
+  },
+  {
+    label: 'Bridal / Groom',
+    icon: '💍',
+    count: '8+ Salons',
+    color: 'border-amber-400/20 hover:border-amber-400/50',
+    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&q=80&fit=crop',
+  },
 ];
 
 const WHY_NEXORA = [
@@ -96,6 +154,9 @@ function LuxuryShopCard({ shop, index, onClick }: { shop: any; index: number; on
   const isHome = !!(shop.homeService ?? shop.home_service_available);
   const bookings = Number(shop.total_bookings ?? 0);
 
+  // High performing business gold badge
+  const badgeText = rating >= 4.9 ? 'Luxury Choice' : 'Top Rated';
+
   return (
     <div
       ref={ref}
@@ -119,15 +180,31 @@ function LuxuryShopCard({ shop, index, onClick }: { shop: any; index: number; on
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-black/20 to-transparent" />
-          <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#0A0A0A]/80 backdrop-blur-md border border-gold/30 px-2.5 py-1.5 rounded-full">
+          
+          {/* Top-Right: Rating Badge */}
+          <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#0A0A0A]/85 backdrop-blur-md border border-gold/30 px-2.5 py-1.5 rounded-full z-10">
             <Star className="w-3 h-3 fill-gold text-gold" />
             <span className="text-xs font-bold text-gold">{rating.toFixed(1)}</span>
           </div>
-          {isHome && (
-            <div className="absolute top-3 left-3 flex items-center gap-1 bg-gold/90 text-[#0A0A0A] px-2.5 py-1 rounded-full text-xs font-bold">
-              <Home className="w-3 h-3" /> Home
+
+          {/* Top-Left: Small 'Top Rated' or 'Luxury Choice' Gold Badge Overlay */}
+          <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10 pointer-events-none">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-[#17130A]/95 to-[#241D0E]/95 backdrop-blur-md text-amber-300 border border-amber-400/50 shadow-[0_2px_12px_rgba(212,175,55,0.3)] transition-transform duration-300 group-hover:scale-105 font-inter">
+              {badgeText === 'Luxury Choice' ? (
+                <Crown className="w-3 h-3 text-gold fill-gold/25" />
+              ) : (
+                <Award className="w-3 h-3 text-gold" />
+              )}
+              <span>{badgeText}</span>
             </div>
-          )}
+
+            {isHome && (
+              <div className="inline-flex items-center gap-1 bg-gold/90 text-[#0A0A0A] px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm font-inter">
+                <Home className="w-2.5 h-2.5" /> Home
+              </div>
+            )}
+          </div>
+
           <div className="absolute bottom-0 left-0 right-0 px-4 pb-4">
             <h3 className="text-white font-playfair font-bold text-lg leading-tight">{shop.name}</h3>
           </div>
@@ -237,11 +314,27 @@ export default function HomePage() {
   const [rawShops, setRawShops] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [cityFilter, setCityFilter] = useState('all');
+  const [selectedLocation, setSelectedLocation] = useState<LocationOption>(() => {
+    try {
+      const stored = localStorage.getItem('nexora_user_location');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed.id) return parsed;
+      }
+    } catch {}
+    return CURATED_LOCATIONS[0]; // 'all'
+  });
   const { ref: sectionRef, inView: sectionInView } = useInView(0.05);
   const { ref: whyRef, inView: whyInView } = useInView(0.05);
   const { ref: catRef, inView: catInView } = useInView(0.05);
   const { ref: statsRef, inView: statsInView } = useInView(0.1);
+
+  const handleLocationChange = useCallback((loc: LocationOption) => {
+    setSelectedLocation(loc);
+    try {
+      localStorage.setItem('nexora_user_location', JSON.stringify(loc));
+    } catch {}
+  }, []);
 
   const loadShops = useCallback(async () => {
     try {
@@ -274,68 +367,95 @@ export default function HomePage() {
 
   const allShops = useMemo(() => rawShops.length > 0 ? rawShops : DUMMY_SHOPS, [rawShops]);
 
-  const cities = useMemo(() => {
-    const cs = ['all', ...Array.from(new Set(allShops.map((s: any) => s.city).filter(Boolean)))];
-    return cs;
-  }, [allShops]);
-
   const topRatedShops = useMemo(() => {
     let list = [...allShops].sort((a, b) => Number(b.rating ?? b.average_rating ?? 0) - Number(a.rating ?? a.average_rating ?? 0));
-    if (cityFilter !== 'all') list = list.filter(s => s.city === cityFilter);
+
+    // Location filtering by City & Area
+    if (selectedLocation && selectedLocation.city !== 'all') {
+      const { city, area } = selectedLocation;
+
+      if (area) {
+        const areaLower = area.toLowerCase();
+        // Exact area matches (by landmark, address, tags, or description)
+        const areaMatches = list.filter(s =>
+          String(s.landmark || '').toLowerCase().includes(areaLower) ||
+          String(s.address || '').toLowerCase().includes(areaLower) ||
+          (Array.isArray(s.tags) && s.tags.some((t: string) => t.toLowerCase().includes(areaLower))) ||
+          String(s.description || '').toLowerCase().includes(areaLower)
+        );
+
+        if (areaMatches.length > 0) {
+          // Area matches prioritized first, followed by others in the same city
+          const othersInCity = list.filter(s => !areaMatches.includes(s) && String(s.city || '').toLowerCase() === city.toLowerCase());
+          list = [...areaMatches, ...othersInCity];
+        } else {
+          list = list.filter(s => String(s.city || '').toLowerCase() === city.toLowerCase());
+        }
+      } else if (city) {
+        list = list.filter(s => String(s.city || '').toLowerCase() === city.toLowerCase());
+      }
+    }
+
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+      const q = searchQuery.toLowerCase().trim();
       list = list.filter(s =>
         String(s.name ?? '').toLowerCase().includes(q) ||
         String(s.city ?? '').toLowerCase().includes(q) ||
-        (Array.isArray(s.tags) && s.tags.some((t: string) => t.toLowerCase().includes(q)))
+        String(s.address ?? '').toLowerCase().includes(q) ||
+        String(s.landmark ?? '').toLowerCase().includes(q) ||
+        String(s.tagline ?? '').toLowerCase().includes(q) ||
+        (Array.isArray(s.tags) && s.tags.some((t: string) => t.toLowerCase().includes(q))) ||
+        (Array.isArray(s.services) && s.services.some((svc: any) => String(svc.name || '').toLowerCase().includes(q)))
       );
     }
-    return list.slice(0, 6);
-  }, [allShops, cityFilter, searchQuery]);
+    return list.slice(0, 12);
+  }, [allShops, selectedLocation, searchQuery]);
 
   function handleSearchNavigate() {
-    if (searchQuery.trim()) {
-      navigate(`/salons?q=${encodeURIComponent(searchQuery)}`);
-    } else {
-      navigate('/salons');
+    const params = new URLSearchParams();
+    if (searchQuery.trim()) params.set('q', searchQuery.trim());
+    if (selectedLocation && selectedLocation.city !== 'all') {
+      params.set('city', selectedLocation.city);
+      if (selectedLocation.area) params.set('area', selectedLocation.area);
     }
+    const paramStr = params.toString();
+    navigate(paramStr ? `/salons?${paramStr}` : '/salons');
   }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
+      {/* ═══════ LIMITED TIME OFFERS BANNER ═══════ */}
+      <LimitedTimeOfferBanner />
 
       {/* ═══════ HERO ═══════ */}
-      <section className="relative min-h-screen flex flex-col justify-center overflow-hidden">
-        <div className="absolute inset-0">
-          <img src={salonInterior} alt="Luxury salon" className="w-full h-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0A]/40 via-[#0A0A0A]/60 to-[#0A0A0A]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0A0A0A]/70 via-transparent to-transparent" />
-        </div>
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-gold/5 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-1/3 left-1/5 w-72 h-72 rounded-full bg-gold/3 blur-[100px] pointer-events-none" />
+      <section className="relative h-[520px] sm:h-[550px] min-h-[480px] max-h-[580px] flex flex-col justify-center overflow-hidden">
+        {/* Automatic Scrolling Background Image Carousel with Dark Gradient Overlays */}
+        <HeroBackgroundCarousel />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="inline-flex items-center gap-2 border border-gold/30 bg-gold/5 rounded-full px-4 py-2 mb-10">
-            <Sparkles className="w-3.5 h-3.5 text-gold" />
-            <span className="text-gold text-xs font-semibold tracking-[0.2em] uppercase">Premium Salon Experience</span>
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 rounded-full bg-gold/5 blur-[120px] pointer-events-none z-10" />
+        <div className="absolute bottom-1/3 left-1/5 w-72 h-72 rounded-full bg-gold/3 blur-[100px] pointer-events-none z-10" />
+
+        <div className="relative z-10 w-full px-4 sm:px-8 lg:px-12 py-6 sm:py-8 flex flex-col justify-center">
+          <div className="inline-flex items-center gap-2 border border-gold/40 bg-black/40 backdrop-blur-md rounded-full px-3 py-1 mb-3 shadow-lg self-start">
+            <Sparkles className="w-3 h-3 text-gold" />
+            <span className="text-gold text-[11px] font-semibold tracking-[0.2em] uppercase">Premium Salon Experience</span>
           </div>
 
-          <div className="mb-8 max-w-3xl">
-            <h1 className="font-playfair font-bold text-white leading-[1.08] tracking-tight mb-4"
-              style={{ fontSize: 'clamp(2.8rem, 7vw, 5rem)' }}>
-              Where Style<br />
-              <span className="text-gold-gradient italic">Meets Luxury</span>
+          <div className="mb-3 sm:mb-4 max-w-3xl">
+            <h1 className="font-playfair font-bold text-white leading-[1.05] tracking-tight mb-2 drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]"
+              style={{ fontSize: 'clamp(2rem, 4.5vw, 3.5rem)' }}>
+              Where Style <span className="text-gold-gradient italic">Meets Luxury</span>
             </h1>
-            <p className="text-white/50 text-lg font-inter font-light leading-relaxed max-w-xl">
-              Book appointments at premier salons and barbershops. Curated for discerning clients — seamless booking, verified quality.
+            <p className="text-white/90 text-sm sm:text-base font-inter font-light leading-relaxed max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
+              Book appointments at premier salons and barbershops. Curated for discerning clients.
             </p>
           </div>
 
           {/* Search + City Dropdown */}
-          <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mb-12">
-            <div className="relative flex-1 bg-[#141414] border border-white/12 hover:border-gold/40 rounded-2xl flex items-center overflow-hidden transition-all duration-300 focus-within:border-gold/60 focus-within:shadow-gold">
-              <div className="pl-5 pr-3 flex-shrink-0">
-                <Search className="w-4 h-4 text-white/30" />
+          <div className="flex flex-col sm:flex-row gap-2.5 max-w-2xl mb-4 sm:mb-5">
+            <div className="relative flex-1 bg-[#141414]/90 backdrop-blur-md border border-white/15 hover:border-gold/50 rounded-2xl flex items-center overflow-hidden transition-all duration-300 focus-within:border-gold/60 focus-within:shadow-gold shadow-2xl">
+              <div className="pl-4 pr-2.5 flex-shrink-0">
+                <Search className="w-4 h-4 text-gold/80" />
               </div>
               <input
                 type="text"
@@ -343,58 +463,76 @@ export default function HomePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearchNavigate()}
-                className="flex-1 py-4 pr-3 text-sm text-white placeholder-white/25 bg-transparent outline-none font-inter"
+                className="flex-1 py-3 pr-3 text-xs sm:text-sm text-white placeholder-white/40 bg-transparent outline-none font-inter"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="mr-2 w-6 h-6 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
-                  <X className="w-3.5 h-3.5 text-white/50" />
+                <button onClick={() => setSearchQuery('')} className="mr-2 w-5 h-5 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                  <X className="w-3 h-3 text-white/50" />
                 </button>
               )}
             </div>
-            <div className="relative">
-              <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
-                className="h-full min-w-[140px] py-4 pl-4 pr-10 bg-[#141414] border border-white/12 hover:border-gold/30 text-white/60 text-sm rounded-2xl outline-none font-inter appearance-none cursor-pointer transition-all"
-              >
-                {cities.map(c => <option key={c} value={c} className="bg-[#141414]">{c === 'all' ? 'All Cities' : c}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 pointer-events-none" />
-            </div>
+            {/* Location Auto-Suggest with City & Area auto-detection */}
+            <LocationAutoSuggest
+              value={selectedLocation}
+              onChange={handleLocationChange}
+              availableShops={allShops}
+              placeholder="Select city or area…"
+            />
+
             <button type="button" onClick={handleSearchNavigate}
-              className="bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-sm px-8 py-4 rounded-2xl transition-all shadow-gold hover:scale-[1.02] whitespace-nowrap">
+              className="bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-xs sm:text-sm px-6 py-3 rounded-2xl transition-all shadow-gold hover:scale-[1.02] active:scale-[0.98] whitespace-nowrap cursor-pointer">
               Search
             </button>
           </div>
 
-          <div className="mb-12">
+          {/* Active location indicator if filtered */}
+          {selectedLocation && selectedLocation.city !== 'all' && (
+            <div className="flex items-center gap-2 mb-3.5 self-start">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs bg-gold/15 border border-gold/40 text-gold font-inter backdrop-blur-md shadow-sm">
+                <MapPin className="w-3.5 h-3.5 text-gold flex-shrink-0" />
+                <span>
+                  Filtering salons & studios in <strong className="text-white">{selectedLocation.displayName}</strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleLocationChange(CURATED_LOCATIONS[0])}
+                  className="w-4 h-4 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-colors ml-0.5 cursor-pointer"
+                  title="Clear location filter"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="mb-3 sm:mb-4">
             <FeaturedOffersCarousel />
           </div>
 
           {/* Stats */}
-          <div className="flex flex-wrap gap-4 mb-12">
+          <div className="flex flex-wrap gap-2.5 mb-2 sm:mb-3">
             {[
               { label: '50+ Premier Salons', icon: Store },
               { label: '10,000+ Satisfied Clients', icon: Users },
               { label: '24/7 Easy Booking', icon: Zap },
             ].map(({ label, icon: Icon }) => (
-              <div key={label} className="flex items-center gap-2.5 border border-gold/20 bg-gold/5 rounded-full px-4 py-2">
-                <Icon className="w-3.5 h-3.5 text-gold" />
-                <span className="text-white/70 text-xs font-medium">{label}</span>
+              <div key={label} className="flex items-center gap-1.5 border border-gold/20 bg-black/40 backdrop-blur-md rounded-full px-3 py-1">
+                <Icon className="w-3 h-3 text-gold" />
+                <span className="text-white/80 text-[11px] font-medium">{label}</span>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-col items-start gap-1.5">
-            <span className="text-white/25 text-xs tracking-widest uppercase font-inter">Explore Salons</span>
-            <ChevronDown className="w-4 h-4 text-gold/50 animate-bounce" />
+          <div className="flex items-center gap-1.5">
+            <span className="text-white/30 text-[10px] tracking-widest uppercase font-inter">Explore Salons</span>
+            <ChevronDown className="w-3 h-3 text-gold/60 animate-bounce" />
           </div>
         </div>
       </section>
 
       {/* ═══════ PLATFORM STATS BAR ═══════ */}
       <div ref={statsRef} className="border-y border-white/8 bg-[#0E0E0E]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-0 md:divide-x md:divide-white/8">
             {[
               { value: '50+', label: 'Premier Salons', icon: Store },
@@ -418,7 +556,7 @@ export default function HomePage() {
       </div>
 
       {/* ═══════ SERVICE CATEGORIES ═══════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-16">
+      <section className="w-full px-4 sm:px-8 lg:px-12 py-16">
         <div ref={catRef}>
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10"
             style={{ opacity: catInView ? 1 : 0, transform: catInView ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}>
@@ -433,31 +571,96 @@ export default function HomePage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {SERVICE_CATEGORIES.map((cat, i) => (
-              <button key={cat.label} type="button"
-                onClick={() => navigate(`/salons?q=${encodeURIComponent(cat.label)}`)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl bg-[#141414] border transition-all duration-300 hover:bg-[#1A1A1A] hover:-translate-y-0.5 group ${cat.color}`}
-                style={{ opacity: catInView ? 1 : 0, transform: catInView ? 'translateY(0)' : 'translateY(24px)', transition: `opacity 0.5s ease ${0.1 + i * 0.05}s, transform 0.5s ease ${0.1 + i * 0.05}s, border-color 0.2s` }}>
-                <span className="text-2xl">{cat.icon}</span>
-                <p className="text-white/70 text-xs font-semibold font-inter text-center leading-tight group-hover:text-white transition-colors">{cat.label}</p>
-                <p className="text-white/20 text-[10px] font-inter">{cat.count}</p>
+              <button
+                key={cat.label}
+                type="button"
+                onClick={() => {
+                  if (cat.label === 'Nails Art Studio') {
+                    navigate('/salons?category=Nails+Art+Studio');
+                  } else {
+                    navigate(`/salons?q=${encodeURIComponent(cat.label.includes('Bridal') ? 'Bridal' : cat.label)}`);
+                  }
+                }}
+                className="group relative h-60 sm:h-64 rounded-2xl overflow-hidden border border-white/10 hover:border-gold/70 shadow-xl hover:shadow-[0_0_25px_rgba(212,175,55,0.35)] hover:-translate-y-1 transition-all duration-300 text-left focus:outline-none focus:ring-2 focus:ring-gold/50 cursor-pointer"
+                style={{
+                  opacity: catInView ? 1 : 0,
+                  transform: catInView ? 'translateY(0)' : 'translateY(24px)',
+                  transition: `opacity 0.5s ease ${0.1 + i * 0.05}s, transform 0.5s ease ${0.1 + i * 0.05}s, border-color 0.3s`,
+                }}
+              >
+                {/* Background image with hover zoom effect */}
+                <img
+                  src={cat.image}
+                  alt={cat.label}
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
+                />
+
+                {/* Dark gradient overlay for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent transition-opacity duration-300 group-hover:from-black/95 group-hover:via-black/50" />
+
+                {/* Content Overlay */}
+                <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between z-10">
+                  {/* Top Row: Icon Badge & Count Tag */}
+                  <div className="flex items-center justify-between">
+                    <span className="w-10 h-10 rounded-xl bg-black/50 backdrop-blur-md border border-white/15 flex items-center justify-center text-xl shadow-md group-hover:border-gold/50 group-hover:scale-105 transition-all">
+                      {cat.icon}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-black/70 backdrop-blur-md border border-white/15 text-gold shadow-sm font-inter">
+                      {cat.count}
+                    </span>
+                  </div>
+
+                  {/* Bottom Row: Title & Action */}
+                  <div>
+                    <h3 className="text-white font-playfair font-bold text-lg sm:text-xl group-hover:text-gold transition-colors leading-tight">
+                      {cat.label}
+                    </h3>
+                    <p className="text-white/70 text-xs font-inter mt-1.5 flex items-center gap-1.5 group-hover:text-white transition-colors">
+                      <span>Explore salons</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-gold group-hover:translate-x-1 transition-transform" />
+                    </p>
+                  </div>
+                </div>
               </button>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ═══════ RECENTLY VIEWED (LAST 3 VISITED SALONS) ═══════ */}
+      <RecentlyViewedCarousel />
+
+      {/* ═══════ AI-POWERED RECOMMENDED FOR YOU ═══════ */}
+      <RecommendedForYou />
+
       {/* ═══════ TOP RATED SALONS ═══════ */}
-      <section ref={sectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <section ref={sectionRef} className="w-full px-4 sm:px-8 lg:px-12 pb-16">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-10"
           style={{ opacity: sectionInView ? 1 : 0, transform: sectionInView ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}>
           <div>
             <div className="gold-divider w-12 mb-4" />
-            <h2 className="font-playfair font-bold text-white text-4xl sm:text-5xl leading-tight mb-2">Top Rated Salons</h2>
-            <p className="text-white/40 text-sm font-inter">Handpicked premium salons delivering exceptional service</p>
+            <h2 className="font-playfair font-bold text-white text-3xl sm:text-5xl leading-tight mb-2">
+              Top Rated Salons {selectedLocation && selectedLocation.city !== 'all' ? (
+                <span className="text-gold-gradient font-inter text-xl sm:text-3xl block sm:inline sm:ml-2">
+                  in {selectedLocation.displayName}
+                </span>
+              ) : null}
+            </h2>
+            <p className="text-white/40 text-sm font-inter">
+              {selectedLocation && selectedLocation.city !== 'all'
+                ? `Showing handpicked premier salons & barbershops in ${selectedLocation.displayName}`
+                : 'Handpicked premium salons delivering exceptional service'}
+            </p>
           </div>
-          <button onClick={() => navigate('/salons')} type="button"
+          <button onClick={() => {
+            const url = selectedLocation && selectedLocation.city !== 'all'
+              ? `/salons?city=${encodeURIComponent(selectedLocation.city)}${selectedLocation.area ? `&area=${encodeURIComponent(selectedLocation.area)}` : ''}`
+              : '/salons';
+            navigate(url);
+          }} type="button"
             className="flex items-center gap-2 text-xs font-semibold text-gold border border-gold/30 hover:border-gold hover:bg-gold/5 rounded-xl px-4 py-2.5 transition-all whitespace-nowrap">
             <Store className="w-3.5 h-3.5" /> Browse All <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -470,29 +673,60 @@ export default function HomePage() {
             </div>
             <p className="text-white/30 font-inter text-sm">Curating your experience…</p>
           </div>
+        ) : topRatedShops.length === 0 ? (
+          <div className="text-center py-16 bg-[#121212]/90 border border-white/10 rounded-2xl p-8 max-w-xl mx-auto shadow-2xl">
+            <MapPin className="w-10 h-10 text-gold/60 mx-auto mb-3 animate-pulse" />
+            <h3 className="font-playfair text-white text-xl font-bold mb-1">
+              No salons found in {selectedLocation.displayName}
+            </h3>
+            <p className="text-white/40 text-sm font-inter mb-5 leading-relaxed">
+              We haven't partnered with salons in this exact locality yet. Reset your location filter to view all premier salons in nearby hubs.
+            </p>
+            <button
+              type="button"
+              onClick={() => handleLocationChange(CURATED_LOCATIONS[0])}
+              className="px-6 py-2.5 rounded-xl bg-gold text-[#0A0A0A] font-bold text-xs shadow-gold hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            >
+              Reset to All Locations
+            </button>
+          </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {topRatedShops.map((shop, i) => (
               <LuxuryShopCard key={String(shop.id)} shop={shop} index={i}
-                onClick={() => { if (!shop.isDemo) navigate(`/shop/${shop.id}`); }} />
+                onClick={() => {
+                  recordSalonVisit(shop);
+                  navigate(`/shop/${shop.id}`);
+                }} />
             ))}
           </div>
         )}
 
         {!loading && topRatedShops.length > 0 && (
           <div className="text-center mt-10">
-            <button onClick={() => navigate('/salons')} type="button"
+            <button onClick={() => {
+              const url = selectedLocation && selectedLocation.city !== 'all'
+                ? `/salons?city=${encodeURIComponent(selectedLocation.city)}${selectedLocation.area ? `&area=${encodeURIComponent(selectedLocation.area)}` : ''}`
+                : '/salons';
+              navigate(url);
+            }} type="button"
               className="px-8 py-3.5 rounded-xl border border-gold/30 text-gold hover:bg-gold/5 hover:border-gold font-semibold text-sm transition-all">
-              View All Salons
+              View All Salons {selectedLocation && selectedLocation.city !== 'all' ? `in ${selectedLocation.displayName}` : ''}
               <ArrowRight className="w-4 h-4 inline ml-2" />
             </button>
           </div>
         )}
       </section>
 
+      {/* ═══════ SERVICE FILTER STRIP ═══════ */}
+      <ServiceFilterStrip selectedLocation={selectedLocation} />
+
+      {/* ═══════ FEATURED NAIL STUDIOS ═══════ */}
+      <FeaturedNailStudios selectedLocation={selectedLocation} />
+
       {/* ═══════ WHY NEXORA ═══════ */}
       <section className="border-t border-white/8 bg-[#0E0E0E]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-20">
           <div ref={whyRef}>
             <div className="text-center mb-14"
               style={{ opacity: whyInView ? 1 : 0, transform: whyInView ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}>
@@ -520,7 +754,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════ TESTIMONIALS ═══════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-20">
+      <section className="w-full px-4 sm:px-8 lg:px-12 py-20">
         <div className="text-center mb-12">
           <div className="gold-divider w-10 mx-auto mb-5" />
           <h2 className="font-playfair font-bold text-white text-3xl sm:text-4xl mb-3">Client Testimonials</h2>
@@ -547,7 +781,7 @@ export default function HomePage() {
       </section>
 
       {/* ═══════ OWNER CTA ═══════ */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-20">
+      <section className="w-full px-4 sm:px-8 lg:px-12 pb-20">
         <div className="rounded-3xl overflow-hidden relative border border-gold/15">
           <div className="absolute inset-0 bg-gradient-to-br from-[#141414] to-[#0E0E0E]" />
           <div className="absolute right-0 top-0 w-80 h-80 rounded-full bg-gold/6 blur-[80px] pointer-events-none" />
@@ -587,7 +821,7 @@ export default function HomePage() {
 
       {/* ═══════ BOTTOM FEATURES STRIP ═══════ */}
       <section className="border-t border-white/8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { icon: Shield, label: 'Verified Salons', sub: 'Every salon reviewed & approved' },

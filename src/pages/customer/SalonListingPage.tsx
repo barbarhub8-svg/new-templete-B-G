@@ -4,13 +4,15 @@ import {
   Star, MapPin, Clock, Home, Store, Loader2, Search, X,
   ArrowRight, Scissors, TrendingUp, Filter, SlidersHorizontal,
   ChevronLeft, ChevronRight, ChevronDown, Grid3X3, List,
-  Award, CheckCircle
+  Award, CheckCircle, Crown
 } from 'lucide-react';
 import { getApprovedShops } from '@/lib/api';
+import { JAIPUR_PREMIER_SHOPS, FEATURED_NAIL_STUDIOS } from '@/lib/dummyShopsData';
+import { recordSalonVisit } from '@/lib/recentlyViewed';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 
-const DUMMY_SHOPS = [
+const BASE_DEMO_SHOPS = [
   {
     id: 'dummy-1', name: 'The Royal Barberia',
     tagline: 'Luxury grooming with modern fades and classic precision styling.',
@@ -71,19 +73,19 @@ const DUMMY_SHOPS = [
     total_bookings: 310, isDemo: true, category: 'Salon',
     home_service_charge: 200,
   },
-  {
-    id: 'dummy-7', name: 'Pink City Glow Salon',
-    tagline: 'Authentic Rajasthani beauty treatments and modern styling.',
-    photo: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&h=600&fit=crop&q=90',
-    rating: 4.9, totalReviews: 120, city: 'Jaipur', address: 'Malviya Nagar, Jaipur',
-    tags: ['Bridal', 'Facial', 'Hair Cut'], homeService: true,
-    opening_time: '10:00', closing_time: '20:00', weekly_off: 'Tuesday',
-    total_bookings: 450, isDemo: true, category: 'Salon',
-    home_service_charge: 100,
-  },
 ];
 
-const CATEGORIES = ['All', 'Barbershop', 'Salon', 'Spa'];
+const DUMMY_SHOPS = [...JAIPUR_PREMIER_SHOPS, ...FEATURED_NAIL_STUDIOS, ...BASE_DEMO_SHOPS];
+
+export const CATEGORY_ITEMS = [
+  { id: 'All', label: 'All Salons', icon: '✨' },
+  { id: 'Nails Art Studio', label: 'Nails Art Studio', icon: '💅', primary: true },
+  { id: 'Barbershop', label: 'Barbershop', icon: '💈' },
+  { id: 'Salon', label: 'Salon', icon: '✂️' },
+  { id: 'Spa', label: 'Spa & Wellness', icon: '💆' },
+];
+
+const CATEGORIES = CATEGORY_ITEMS.map(c => c.id);
 const PRICE_RANGES = [
   { label: 'All Prices', min: 0, max: Infinity },
   { label: 'Budget (Under ₹500)', min: 0, max: 500 },
@@ -123,6 +125,7 @@ function ShopGridCard({ shop, index, onClick }: { shop: any; index: number; onCl
 
   const rating = Number(shop.rating ?? shop.average_rating ?? 0);
   const reviews = Number(shop.totalReviews ?? shop.total_reviews ?? 0);
+  const badgeText = rating >= 4.9 ? 'Luxury Choice' : (rating >= 4.7 || shop.isDemo) ? 'Top Rated' : null;
 
   return (
     <div ref={ref} onClick={onClick} className="group cursor-pointer"
@@ -137,15 +140,30 @@ function ShopGridCard({ shop, index, onClick }: { shop: any; index: number; onCl
             <div className="w-full h-full flex items-center justify-center"><Scissors className="w-12 h-12 text-white/10" /></div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#141414]/80 via-transparent to-transparent" />
-          <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#0A0A0A]/80 backdrop-blur-md border border-gold/30 px-2 py-1 rounded-full">
+          <div className="absolute top-3 right-3 flex items-center gap-1 bg-[#0A0A0A]/80 backdrop-blur-md border border-gold/30 px-2 py-1 rounded-full z-10">
             <Star className="w-3 h-3 fill-gold text-gold" />
             <span className="text-xs font-bold text-gold">{rating.toFixed(1)}</span>
           </div>
-          {(shop.homeService || shop.home_service_available) && (
-            <div className="absolute top-3 left-3 flex items-center gap-1 bg-gold/90 text-[#0A0A0A] px-2 py-0.5 rounded-full text-[10px] font-bold">
-              <Home className="w-2.5 h-2.5" /> Home
-            </div>
-          )}
+          
+          {/* Top-Left: Gold Badge Overlay & Home service pill */}
+          <div className="absolute top-3 left-3 flex flex-wrap items-center gap-1.5 z-10 pointer-events-none">
+            {badgeText && (
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-gradient-to-r from-[#17130A]/95 to-[#241D0E]/95 backdrop-blur-md text-amber-300 border border-amber-400/50 shadow-[0_2px_10px_rgba(212,175,55,0.3)] transition-transform duration-300 group-hover:scale-105 font-inter">
+                {badgeText === 'Luxury Choice' ? (
+                  <Crown className="w-2.5 h-2.5 text-gold fill-gold/25" />
+                ) : (
+                  <Award className="w-2.5 h-2.5 text-gold" />
+                )}
+                <span>{badgeText}</span>
+              </div>
+            )}
+            {(shop.homeService || shop.home_service_available) && (
+              <div className="inline-flex items-center gap-1 bg-gold/90 text-[#0A0A0A] px-2 py-0.5 rounded-full text-[10px] font-bold font-inter shadow-sm">
+                <Home className="w-2.5 h-2.5" /> Home
+              </div>
+            )}
+          </div>
+
           {shop.category && (
             <div className="absolute bottom-3 left-3 px-2 py-0.5 bg-[#0A0A0A]/70 backdrop-blur-sm rounded-full text-[10px] text-white/50 font-inter border border-white/10">
               {shop.category}
@@ -159,6 +177,15 @@ function ShopGridCard({ shop, index, onClick }: { shop: any; index: number; onCl
             <MapPin className="w-3 h-3 flex-shrink-0 text-gold/40" />
             <span className="truncate">{shop.address || shop.city}</span>
           </div>
+          {Array.isArray(shop.tags) && shop.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-2.5">
+              {shop.tags.slice(0, 3).map((tag: string) => (
+                <span key={tag} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-gold/80 border border-gold/20">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
           {shop.tagline && (
             <p className="text-white/35 text-xs leading-relaxed mb-3 line-clamp-2 flex-1">{shop.tagline}</p>
           )}
@@ -246,7 +273,8 @@ export default function SalonListingPage() {
   const [showFilters, setShowFilters] = useState(true);
 
   const [search, setSearch] = useState(searchParams.get('q') || '');
-  const [city, setCity] = useState('all');
+  const [city, setCity] = useState(searchParams.get('city') || 'all');
+  const [area, setArea] = useState(searchParams.get('area') || '');
   const [category, setCategory] = useState('All');
   const [priceRangeIndex, setPriceRangeIndex] = useState(0);
   const [homeOnly, setHomeOnly] = useState(false);
@@ -282,28 +310,66 @@ export default function SalonListingPage() {
 
   useEffect(() => { loadShops(); }, [loadShops]);
 
+  useEffect(() => {
+    const qParam = searchParams.get('q');
+    if (qParam !== null) setSearch(qParam);
+    const cityParam = searchParams.get('city');
+    if (cityParam) setCity(cityParam);
+    const areaParam = searchParams.get('area');
+    if (areaParam !== null) setArea(areaParam);
+    const catParam = searchParams.get('category');
+    if (catParam) setCategory(catParam);
+  }, [searchParams]);
+
   const allShops = useMemo(() => rawShops.length > 0 ? rawShops : DUMMY_SHOPS, [rawShops]);
 
   const cities = useMemo(() => {
-    const citySet = new Set(allShops.map((s: any) => s.city?.toLowerCase()).filter(Boolean));
+    const citySet = new Set(allShops.map((s: any) => s.city?.trim()).filter(Boolean));
     const normalizedCities = Array.from(citySet).map(c => c!.charAt(0).toUpperCase() + c!.slice(1));
-    return ['all', ...normalizedCities];
+    const combined = ['all', 'Jaipur', ...normalizedCities.filter(c => c.toLowerCase() !== 'jaipur')];
+    return Array.from(new Set(combined));
   }, [allShops]);
 
   const filtered = useMemo(() => {
     let list = [...allShops];
     if (search.trim()) {
-      const q = search.toLowerCase();
+      const q = search.toLowerCase().trim();
       list = list.filter(s =>
         String(s.name ?? '').toLowerCase().includes(q) ||
         String(s.city ?? '').toLowerCase().includes(q) ||
         String(s.address ?? '').toLowerCase().includes(q) ||
+        String(s.landmark ?? '').toLowerCase().includes(q) ||
+        String(s.tagline ?? '').toLowerCase().includes(q) ||
         (Array.isArray(s.tags) && s.tags.some((t: string) => t.toLowerCase().includes(q))) ||
-        (s.category && String(s.category).toLowerCase().includes(q))
+        (s.category && String(s.category).toLowerCase().includes(q)) ||
+        (Array.isArray(s.services) && s.services.some((svc: any) => String(svc.name || '').toLowerCase().includes(q)))
       );
     }
-    if (city !== 'all') list = list.filter(s => s.city?.toLowerCase() === city.toLowerCase());
-    if (category !== 'All') list = list.filter(s => (s.category || '').toLowerCase() === category.toLowerCase());
+    if (city && city !== 'all') {
+      list = list.filter(s => String(s.city || '').toLowerCase() === city.toLowerCase());
+    }
+    if (area) {
+      const a = area.toLowerCase();
+      list = list.filter(s =>
+        String(s.landmark || '').toLowerCase().includes(a) ||
+        String(s.address || '').toLowerCase().includes(a) ||
+        (Array.isArray(s.tags) && s.tags.some((t: string) => t.toLowerCase().includes(a))) ||
+        String(s.description || '').toLowerCase().includes(a)
+      );
+    }
+    if (category !== 'All') {
+      const catLower = category.toLowerCase();
+      list = list.filter(s => {
+        const sCat = (s.category || '').toLowerCase();
+        if (catLower.includes('nail')) {
+          if (sCat.includes('nail')) return true;
+          if (Array.isArray(s.tags) && s.tags.some((t: string) => t.toLowerCase().includes('nail') || t.toLowerCase().includes('manicure'))) return true;
+          if (Array.isArray(s.services) && s.services.some((svc: any) => String(svc.name || '').toLowerCase().includes('nail') || String(svc.category || '').toLowerCase().includes('nail') || String(svc.category || '').toLowerCase().includes('manicure'))) return true;
+          return false;
+        }
+        return sCat === catLower || sCat.includes(catLower);
+      });
+    }
     if (priceRangeIndex > 0) {
       const range = PRICE_RANGES[priceRangeIndex];
       list = list.filter(s => {
@@ -325,16 +391,17 @@ export default function SalonListingPage() {
       return 0;
     });
     return list;
-  }, [allShops, search, city, category, priceRangeIndex, homeOnly, minRating, sortBy]);
+  }, [allShops, search, city, area, category, priceRangeIndex, homeOnly, minRating, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  useEffect(() => { setPage(1); }, [search, city, category, priceRangeIndex, homeOnly, minRating, sortBy]);
+  useEffect(() => { setPage(1); }, [search, city, area, category, priceRangeIndex, homeOnly, minRating, sortBy]);
 
   function clearFilters() {
     setSearch('');
     setCity('all');
+    setArea('');
     setCategory('All');
     setPriceRangeIndex(0);
     setHomeOnly(false);
@@ -343,7 +410,7 @@ export default function SalonListingPage() {
     setPage(1);
   }
 
-  const hasActiveFilters = search || city !== 'all' || category !== 'All' || priceRangeIndex > 0 || homeOnly || minRating > 0;
+  const hasActiveFilters = search || city !== 'all' || area || category !== 'All' || priceRangeIndex > 0 || homeOnly || minRating > 0;
 
   const inputCls = 'w-full px-3 py-2.5 text-sm bg-[#0A0A0A] border border-white/12 focus:border-gold/40 text-white placeholder-white/20 rounded-xl outline-none font-inter transition-all';
 
@@ -351,7 +418,7 @@ export default function SalonListingPage() {
     <div className="min-h-screen bg-[#0A0A0A]">
       {/* ── Page Header ── */}
       <div className="border-b border-white/8 bg-[#0E0E0E]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-8">
           <div className="gold-divider w-8 mb-4" />
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
@@ -380,7 +447,7 @@ export default function SalonListingPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <div className="w-full px-4 sm:px-8 lg:px-12 py-8">
         <div className="flex gap-8">
           {/* ── Filter Sidebar ── */}
           <aside className={`flex-shrink-0 transition-all duration-300 ${showFilters ? 'w-64' : 'w-0 overflow-hidden'} hidden md:block`}>
@@ -411,11 +478,21 @@ export default function SalonListingPage() {
               <div className="nexora-card rounded-xl p-4">
                 <p className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-3 font-inter">Category</p>
                 <div className="space-y-1">
-                  {CATEGORIES.map(cat => (
-                    <button key={cat} onClick={() => setCategory(cat)}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all font-inter ${category === cat ? 'bg-gold/10 border border-gold/25 text-gold' : 'text-white/40 hover:text-white hover:bg-white/5'}`}>
-                      {cat}
-                      {category === cat && <CheckCircle className="w-3.5 h-3.5" />}
+                  {CATEGORY_ITEMS.map(cat => (
+                    <button key={cat.id} onClick={() => setCategory(cat.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm transition-all font-inter cursor-pointer ${
+                        category === cat.id
+                          ? 'bg-gold/15 border border-gold/40 text-gold shadow-[0_0_12px_rgba(212,175,55,0.25)] font-semibold'
+                          : 'text-white/60 hover:text-white hover:bg-white/5 hover:border-gold/30 hover:shadow-[0_0_10px_rgba(212,175,55,0.15)] border border-transparent'
+                      }`}>
+                      <span className="flex items-center gap-2">
+                        <span className="text-sm">{cat.icon}</span>
+                        <span>{cat.label}</span>
+                        {cat.primary && (
+                          <span className="text-[9px] px-1.5 py-0.2 rounded bg-gold/20 text-gold border border-gold/30 uppercase font-bold">Primary</span>
+                        )}
+                      </span>
+                      {category === cat.id && <CheckCircle className="w-3.5 h-3.5 text-gold" />}
                     </button>
                   ))}
                 </div>
@@ -473,6 +550,36 @@ export default function SalonListingPage() {
 
           {/* ── Main Content ── */}
           <div className="flex-1 min-w-0">
+            {/* Category Filter Pills Strip */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-5 scrollbar-none snap-x">
+              {CATEGORY_ITEMS.map((item) => {
+                const isSelected = category === item.id;
+                const isNailStudio = item.id === 'Nails Art Studio';
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setCategory(item.id)}
+                    className={`flex-shrink-0 snap-start flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all duration-300 cursor-pointer select-none ${
+                      isSelected
+                        ? 'bg-gradient-to-r from-gold via-gold-light to-gold text-[#0A0A0A] border-gold shadow-[0_0_20px_rgba(212,175,55,0.4)] scale-[1.02] font-bold'
+                        : isNailStudio
+                        ? 'bg-[#17140f] border-gold/40 text-white hover:text-gold hover:border-gold hover:shadow-[0_0_20px_rgba(212,175,55,0.35)] hover:-translate-y-0.5'
+                        : 'bg-[#141414] border-white/10 hover:border-gold/50 text-white/70 hover:text-white hover:shadow-[0_0_15px_rgba(212,175,55,0.25)] hover:-translate-y-0.5'
+                    }`}
+                  >
+                    <span className="text-sm leading-none">{item.icon}</span>
+                    <span className="font-inter whitespace-nowrap">{item.label}</span>
+                    {item.primary && !isSelected && (
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-gold/20 text-gold border border-gold/30 uppercase font-bold tracking-wider">
+                        Primary
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
             {/* Controls Bar */}
             <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
               {/* Mobile filters toggle + count */}
@@ -554,14 +661,20 @@ export default function SalonListingPage() {
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {paged.map((shop, i) => (
                   <ShopGridCard key={String(shop.id)} shop={shop} index={i}
-                    onClick={() => { if (!shop.isDemo) navigate(`/shop/${shop.id}`); }} />
+                    onClick={() => {
+                      recordSalonVisit(shop);
+                      navigate(`/shop/${shop.id}`);
+                    }} />
                 ))}
               </div>
             ) : (
               <div className="space-y-3">
                 {paged.map((shop) => (
                   <ShopListRow key={String(shop.id)} shop={shop}
-                    onClick={() => { if (!shop.isDemo) navigate(`/shop/${shop.id}`); }} />
+                    onClick={() => {
+                      recordSalonVisit(shop);
+                      navigate(`/shop/${shop.id}`);
+                    }} />
                 ))}
               </div>
             )}

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, ArrowRight, User, Store, Scissors, Home, Upload, Check,
   MapPin, Clock, IndianRupee, ImageIcon, Video, AlertCircle, CheckCircle,
-  FileText, Phone, Tag, X
+  FileText, Phone, Tag, X, Sparkles
 } from 'lucide-react';
 import GmailOtpVerification from '../../components/forms/GmailOtpVerification';
 import { useToast } from '../../hooks/use-toast';
@@ -24,19 +24,40 @@ const STEPS = [
 ];
 
 const SHOP_CATEGORIES = [
-  'Barber Shop', 'Unisex Salon', "Men's Salon", 'Ladies Parlour',
-  'Spa & Grooming', 'Hair Studio', 'Beauty & Grooming', 'Other',
+  'Nails Art Studio',
+  'Barber Shop',
+  'Unisex Salon',
+  "Men's Salon",
+  'Ladies Parlour',
+  'Spa & Grooming',
+  'Hair Studio',
+  'Beauty & Grooming',
+  'Other',
+];
+
+const DEDICATED_NAIL_SERVICES = [
+  { id: 's-nail-1', name: 'Nail Art', emoji: '💅', price: 799, duration: 45, isNail: true },
+  { id: 's-nail-2', name: 'Gel Extensions', emoji: '✨', price: 1999, duration: 75, isNail: true },
+  { id: 's-nail-3', name: 'Russian Manicure', emoji: '👑', price: 1299, duration: 60, isNail: true },
+  { id: 's-nail-4', name: 'Acrylic Extensions', emoji: '💎', price: 2499, duration: 90, isNail: true },
+  { id: 's-nail-5', name: 'Chrome Glaze Finish', emoji: '🌟', price: 999, duration: 45, isNail: true },
+  { id: 's-nail-6', name: 'Nail Spa & Cuticle Care', emoji: '🫧', price: 699, duration: 40, isNail: true },
+];
+
+const GENERAL_SERVICES = [
+  { id: 's1', name: 'Hair Cut',   emoji: '✂️', price: 150, duration: 30, isNail: false },
+  { id: 's2', name: 'Beard Trim', emoji: '🧔', price: 100, duration: 20, isNail: false },
+  { id: 's3', name: 'Shaving',    emoji: '🪒', price: 80,  duration: 15, isNail: false },
+  { id: 's4', name: 'Facial',     emoji: '✨', price: 300, duration: 45, isNail: false },
+  { id: 's5', name: 'Massage',    emoji: '💆', price: 400, duration: 60, isNail: false },
+  { id: 's6', name: 'Hair Color', emoji: '🎨', price: 800, duration: 90, isNail: false },
+  { id: 's7', name: 'Hair Wash',  emoji: '🚿', price: 80,  duration: 20, isNail: false },
+  { id: 's8', name: 'Keratin',    emoji: '💇', price: 2500,duration: 120, isNail: false },
 ];
 
 const SERVICES_OPTIONS = [
-  { id: 's1', name: 'Hair Cut',   emoji: '✂️', price: 150, duration: 30 },
-  { id: 's2', name: 'Beard Trim', emoji: '🧔', price: 100, duration: 20 },
-  { id: 's3', name: 'Shaving',    emoji: '🪒', price: 80,  duration: 15 },
-  { id: 's4', name: 'Facial',     emoji: '✨', price: 300, duration: 45 },
-  { id: 's5', name: 'Massage',    emoji: '💆', price: 400, duration: 60 },
-  { id: 's6', name: 'Hair Color', emoji: '🎨', price: 800, duration: 90 },
-  { id: 's7', name: 'Hair Wash',  emoji: '🚿', price: 80,  duration: 20 },
-  { id: 's8', name: 'Keratin',    emoji: '💇', price: 2500,duration: 120 },
+  ...DEDICATED_NAIL_SERVICES,
+  ...GENERAL_SERVICES,
 ];
 
 const WEEKDAYS = ['None (Open All Days)','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -120,6 +141,7 @@ export default function OwnerRegisterPage() {
 
   // Step 3
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [serviceTab,       setServiceTab]       = useState<'all' | 'nails' | 'general'>('all');
   const [customService,    setCustomService]    = useState({ name: '', price: '', duration: '' });
   const [editingService,   setEditingService]   = useState<string | null>(null);
   const [editPrice,        setEditPrice]        = useState('');
@@ -503,7 +525,13 @@ export default function OwnerRegisterPage() {
         );
 
       /* ── Step 3: Services ──────────────────────────────────────────────── */
-      case 3:
+      case 3: {
+        const displayedServices = SERVICES_OPTIONS.filter((opt) => {
+          if (serviceTab === 'nails') return opt.isNail;
+          if (serviceTab === 'general') return !opt.isNail;
+          return true;
+        });
+
         return (
           <div className="space-y-5">
             <div>
@@ -512,24 +540,106 @@ export default function OwnerRegisterPage() {
             </div>
             <Divider />
 
-            {/* Quick Add */}
+            {/* Nails Art Studio Preset Banner */}
+            {shopCategory.toLowerCase().includes('nail') && (
+              <div className="p-4 rounded-xl bg-gold/10 border border-gold/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_0_24px_rgba(212,175,55,0.15)]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gold/20 border border-gold/40 flex items-center justify-center text-xl flex-shrink-0">
+                    💅
+                  </div>
+                  <div>
+                    <h4 className="text-white font-playfair font-bold text-sm">Nails Art Studio Mode</h4>
+                    <p className="text-white/60 text-xs font-inter">
+                      Add dedicated nail services (Nail Art, Gel Extensions, Russian Manicure, Acrylics) in one tap.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newServices = [...selectedServices];
+                    DEDICATED_NAIL_SERVICES.forEach((item) => {
+                      if (!newServices.some((s) => s.id === item.id || s.name.toLowerCase() === item.name.toLowerCase())) {
+                        newServices.push({
+                          id: item.id,
+                          name: item.name,
+                          price: item.price,
+                          duration: item.duration,
+                          icon: 'scissors',
+                        });
+                      }
+                    });
+                    setSelectedServices(newServices);
+                    toast({
+                      title: 'Nail Services Added',
+                      description: 'All 6 dedicated nail studio services have been added to your profile.',
+                    });
+                  }}
+                  className="px-3.5 py-2 bg-gold hover:bg-gold-light text-[#0A0A0A] font-inter font-bold text-xs rounded-xl shadow-gold hover:shadow-[0_0_20px_rgba(212,175,55,0.5)] flex items-center gap-1.5 transition-all self-start sm:self-auto cursor-pointer whitespace-nowrap"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Quick Add All Nail Services
+                </button>
+              </div>
+            )}
+
+            {/* Quick Add Tabs */}
             <div>
-              <label className={labelCls}>Quick Add Services</label>
+              <div className="flex items-center justify-between mb-2">
+                <label className={labelCls}>Quick Add Services</label>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setServiceTab('all')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-inter transition-all ${
+                      serviceTab === 'all'
+                        ? 'bg-gold text-[#0A0A0A] font-bold shadow-sm'
+                        : 'bg-[#141414] text-white/50 hover:text-white border border-white/8'
+                    }`}
+                  >
+                    All ({SERVICES_OPTIONS.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setServiceTab('nails')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-inter flex items-center gap-1 transition-all ${
+                      serviceTab === 'nails'
+                        ? 'bg-gold text-[#0A0A0A] font-bold shadow-sm'
+                        : 'bg-gold/10 text-gold border border-gold/30 hover:border-gold/60'
+                    }`}
+                  >
+                    <span>💅 Nail Studio ({DEDICATED_NAIL_SERVICES.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setServiceTab('general')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-inter transition-all ${
+                      serviceTab === 'general'
+                        ? 'bg-gold text-[#0A0A0A] font-bold shadow-sm'
+                        : 'bg-[#141414] text-white/50 hover:text-white border border-white/8'
+                    }`}
+                  >
+                    Hair & Grooming ({GENERAL_SERVICES.length})
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
-                {SERVICES_OPTIONS.map((option) => {
+                {displayedServices.map((option) => {
                   const selected = selectedServices.find((s) => s.id === option.id);
                   return (
                     <div key={option.id}>
                       <button type="button" onClick={() => toggleService(option)}
                         className={`w-full p-3 border-2 rounded-xl transition-all text-left ${
                           selected
-                            ? 'border-gold bg-gold/8 shadow-gold'
+                            ? 'border-gold bg-gold/10 shadow-[0_0_20px_rgba(212,175,55,0.25)]'
+                            : option.isNail
+                            ? 'border-gold/30 bg-[#161616] hover:border-gold/60 hover:shadow-[0_0_16px_rgba(212,175,55,0.2)]'
                             : 'border-white/10 bg-[#141414] hover:border-gold/30'
                         }`}>
                         <div className="flex items-center gap-2">
                           <span className="text-xl">{option.emoji}</span>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-white font-inter">{option.name}</p>
+                            <p className="font-semibold text-sm text-white font-inter truncate">{option.name}</p>
                             <p className="text-xs text-white/30 font-inter">₹{option.price} · {option.duration}m</p>
                           </div>
                           {selected && (
@@ -605,6 +715,7 @@ export default function OwnerRegisterPage() {
             </div>
           </div>
         );
+      }
 
       /* ── Step 4: Home Service ──────────────────────────────────────────── */
       case 4:

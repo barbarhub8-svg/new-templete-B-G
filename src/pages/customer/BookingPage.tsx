@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, Home, Store, Clock, IndianRupee, CheckCircle,
   Loader2, Scissors, Sun, Sunset, Moon, ChevronRight,
@@ -204,6 +204,7 @@ function SuccessOverlay() {
 export default function BookingPage() {
   const { shopId } = useParams();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -228,7 +229,9 @@ export default function BookingPage() {
 
   // Customer details
   const [customerName, setCustomerName] = useState('');
-  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerEmail, setCustomerEmail] = useState(() => {
+    return localStorage.getItem('nexora_customer_email') || '';
+  });
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [referralCode, setReferralCode] = useState('');
@@ -251,6 +254,22 @@ export default function BookingPage() {
       const data = await getShopById(shopId!);
       if (!data) throw new Error('Shop not found');
       setShop(data);
+
+      // Handle AI Recommendation pre-selection or router state
+      const state = location.state as any;
+      if (state?.preSelectedServices && state.preSelectedServices.length > 0) {
+        setSelectedServices(state.preSelectedServices);
+      } else if (state?.preSelectedServiceName && data.services) {
+        const query = state.preSelectedServiceName.toLowerCase();
+        const found = data.services.find(
+          (s: any) => s.name?.toLowerCase().includes(query) || query.includes(s.name?.toLowerCase())
+        );
+        if (found) {
+          setSelectedServices([found]);
+        } else if (data.services.length > 0) {
+          setSelectedServices([data.services[0]]);
+        }
+      }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
       navigate('/');
@@ -439,6 +458,25 @@ export default function BookingPage() {
         staff_role: selectedStaff?.primary_role || undefined,
         staff_avatar: selectedStaff?.profile_photo_url || undefined,
       });
+
+      // Save to localStorage for AI personalized grooming cycle suggestions
+      try {
+        const cleanEmail = customerEmail.trim().toLowerCase();
+        localStorage.setItem('nexora_customer_email', cleanEmail);
+        const existing = JSON.parse(localStorage.getItem('nexora_recent_bookings') || '[]');
+        const newBookingRecord = {
+          serviceName: selectedServices.map((s) => s.name).join(' + '),
+          category: selectedServices[0]?.category || 'Hair Cut',
+          date: selectedDate,
+          price: totalAmount,
+          salonName: shop.name,
+          serviceType: serviceType,
+        };
+        const updated = [newBookingRecord, ...existing].slice(0, 5);
+        localStorage.setItem('nexora_recent_bookings', JSON.stringify(updated));
+      } catch (storageErr) {
+        console.warn('LocalStorage save error:', storageErr);
+      }
 
       setShowSuccess(true);
       setTimeout(() => {

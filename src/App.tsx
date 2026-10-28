@@ -29,52 +29,54 @@ import { useAuthStore } from './stores/authStore';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Shop Mini-Website — standalone, no BarberHub navbar */}
-        <Route path="/shop/:shopId" element={<ShopMiniWebsite />} />
+    <div className="w-full min-h-screen bg-[#0A0A0A] overflow-x-hidden">
+      <Router>
+        <Routes>
+          {/* Shop Mini-Website — standalone, no BarberHub navbar */}
+          <Route path="/shop/:shopId" element={<ShopMiniWebsite />} />
 
-        {/* Customer Routes */}
-        <Route path="/" element={<CustomerLayout />}>
-          <Route index element={<HomePage />} />
-          <Route path="shop/:shopId/details" element={<ShopDetailsPage />} />
-          <Route path="shop/:shopId/book" element={<BookingPage />} />
-          <Route path="booking/confirmation/:bookingId" element={<BookingConfirmationPage />} />
-          <Route path="my-bookings" element={<MyBookingsPage />} />
-          <Route path="booking/:id" element={<BookingStatusPage />} />
-          <Route path="rewards" element={<MyRewardsPage />} />
-          <Route path="salons" element={<SalonListingPage />} />
-          <Route path="terms" element={<TermsPage />} />
-        </Route>
-
-        {/* Owner Routes */}
-        <Route path="/owner" element={<ProtectedOwnerRoute />}>
-          <Route element={<OwnerLayout />}>
-            <Route index element={<Navigate to="/owner/dashboard" replace />} />
-            <Route path="dashboard" element={<OwnerDashboard />} />
-            <Route path="bookings" element={<OwnerBookings />} />
-            <Route path="services" element={<OwnerServices />} />
-            <Route path="staff" element={<OwnerStaff />} />
-            <Route path="wallet" element={<OwnerWallet />} />
-            <Route path="profile" element={<OwnerProfile />} />
+          {/* Customer Routes */}
+          <Route path="/" element={<CustomerLayout />}>
+            <Route index element={<HomePage />} />
+            <Route path="shop/:shopId/details" element={<ShopDetailsPage />} />
+            <Route path="shop/:shopId/book" element={<BookingPage />} />
+            <Route path="booking/confirmation/:bookingId" element={<BookingConfirmationPage />} />
+            <Route path="my-bookings" element={<MyBookingsPage />} />
+            <Route path="booking/:id" element={<BookingStatusPage />} />
+            <Route path="rewards" element={<MyRewardsPage />} />
+            <Route path="salons" element={<SalonListingPage />} />
+            <Route path="terms" element={<TermsPage />} />
           </Route>
-        </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLoginPage />} />
-        <Route path="/admin/*" element={<ProtectedAdminRoute />}>
-          <Route element={<AdminLayout />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
+          {/* Owner Routes */}
+          <Route path="/owner" element={<ProtectedOwnerRoute />}>
+            <Route element={<OwnerLayout />}>
+              <Route index element={<Navigate to="/owner/dashboard" replace />} />
+              <Route path="dashboard" element={<OwnerDashboard />} />
+              <Route path="bookings" element={<OwnerBookings />} />
+              <Route path="services" element={<OwnerServices />} />
+              <Route path="staff" element={<OwnerStaff />} />
+              <Route path="wallet" element={<OwnerWallet />} />
+              <Route path="profile" element={<OwnerProfile />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Auth Routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/owner/register" element={<OwnerRegisterPage />} />
-        <Route path="/owner/pending-approval" element={<PendingApprovalPage />} />
-      </Routes>
-      <Toaster />
-    </Router>
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminLoginPage />} />
+          <Route path="/admin/*" element={<ProtectedAdminRoute />}>
+            <Route element={<AdminLayout />}>
+              <Route path="dashboard" element={<AdminDashboard />} />
+            </Route>
+          </Route>
+
+          {/* Auth Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/owner/register" element={<OwnerRegisterPage />} />
+          <Route path="/owner/pending-approval" element={<PendingApprovalPage />} />
+        </Routes>
+        <Toaster />
+      </Router>
+    </div>
   );
 }
 

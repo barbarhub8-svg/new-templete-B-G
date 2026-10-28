@@ -11,16 +11,16 @@ export default function CustomerLayout() {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="w-full min-h-screen bg-[#0A0A0A]">
       {/* ── Sticky Header ─────────────────────────────────────────── */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
+        className={`sticky top-0 z-50 transition-all duration-300 w-full ${
           isHome
             ? 'bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-gold/10'
             : 'bg-[#0A0A0A] border-b border-white/8'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-4">
           <div className="flex items-center justify-between gap-4">
 
             {/* Logo */}
@@ -133,13 +133,13 @@ export default function CustomerLayout() {
       </header>
 
       {/* Main Content */}
-      <main>
+      <main className="w-full">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-white/8 bg-[#0A0A0A] mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <footer className="border-t border-white/8 bg-[#0A0A0A] mt-16 w-full">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-10">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gold-gradient flex items-center justify-center">
@@ -152,7 +152,7 @@ export default function CustomerLayout() {
             </div>
             <div className="gold-divider hidden md:block flex-1 mx-8" />
             <p className="text-white/30 text-xs text-center">
-  © {new Date().getFullYear()} Nexora Salonos. All rights reserved. ·{' '}
+              © {new Date().getFullYear()} Nexora Salonos. All rights reserved. ·{' '}
               <button type="button" onClick={() => navigate('/terms')} className="text-gold/40 hover:text-gold transition-colors">Terms</button>
             </p>
           </div>

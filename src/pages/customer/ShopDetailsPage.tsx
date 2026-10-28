@@ -14,6 +14,7 @@ import { useToast } from '../../hooks/use-toast';
 import { getShopById, getShopStaff } from '../../lib/api';
 import type { StaffMember } from '../../types';
 import SalonLightbox from '../../components/ui/Lightbox';
+import { recordSalonVisit } from '../../lib/recentlyViewed';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -121,6 +122,19 @@ export default function ShopDetailsPage() {
 
   // Sidebar service selection
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
+  const [showFloatingBook, setShowFloatingBook] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 250) {
+        setShowFloatingBook(true);
+      } else {
+        setShowFloatingBook(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (shopId) loadShopDetails();
@@ -137,6 +151,7 @@ export default function ShopDetailsPage() {
       if (!shopData) throw new Error('Shop not found');
       setShop(shopData);
       setStaffList(staffData || []);
+      recordSalonVisit(shopData);
     } catch (error: any) {
       toast({ title: 'Shop Not Found', description: error.message, variant: 'destructive' });
       setTimeout(() => navigate('/'), 2000);
@@ -208,6 +223,9 @@ export default function ShopDetailsPage() {
     ?.sort((a: any, b: any) => a.display_order - b.display_order)
     ?.map((m: any) => m.media_url) || [];
 
+  const logoMedia = shop.shop_media?.find((m: any) => m.media_type === 'owner_photo');
+  const logoUrl = logoMedia?.media_url;
+
   const videoMedia = shop.shop_media?.find((m: any) => m.media_type === 'video');
   const activeServices = shop.services?.filter((s: any) => s.is_active !== false) || [];
   const reviews = shop.reviews || [];
@@ -257,6 +275,13 @@ export default function ShopDetailsPage() {
             Back
           </Button>
           <Separator orientation="vertical" className="h-5" />
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt={`${shop.name} logo`}
+              className="w-6 h-6 rounded-md object-contain border border-border bg-white"
+            />
+          )}
           <div className="text-sm font-medium truncate text-muted-foreground">{shop.name}</div>
         </div>
       </div>
@@ -270,7 +295,7 @@ export default function ShopDetailsPage() {
               alt={shop.name}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
           </>
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
@@ -282,29 +307,40 @@ export default function ShopDetailsPage() {
         <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {shop.home_service_available && (
-                    <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white border-0">
-                      <Home className="w-3 h-3 mr-1" /> Home Service
-                    </Badge>
-                  )}
-                </div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-1 drop-shadow-sm">{shop.name}</h1>
-                {shop.tagline && (
-                  <p className="text-white/80 text-sm italic mb-2">"{shop.tagline}"</p>
-                )}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-white/90">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5" />
-                    {shop.address}, {shop.city}
+              <div className="flex items-start gap-4">
+                {logoUrl && (
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-black/70 backdrop-blur-md border border-amber-400/40 shadow-2xl p-2 shrink-0 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={logoUrl}
+                      alt={`${shop.name} logo`}
+                      className="w-full h-full object-contain"
+                    />
                   </div>
-                  {shop.contact_number && (
-                    <div className="flex items-center gap-1.5">
-                      <Phone className="w-3.5 h-3.5" />
-                      {shop.contact_number}
-                    </div>
+                )}
+                <div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {shop.home_service_available && (
+                      <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white border-0">
+                        <Home className="w-3 h-3 mr-1" /> Home Service
+                      </Badge>
+                    )}
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-bold mb-1 drop-shadow-sm">{shop.name}</h1>
+                  {shop.tagline && (
+                    <p className="text-white/80 text-sm italic mb-2">"{shop.tagline}"</p>
                   )}
+                  <div className="flex flex-wrap items-center gap-4 text-sm text-white/90">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      {shop.address}, {shop.city}
+                    </div>
+                    {shop.contact_number && (
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3.5 h-3.5" />
+                        {shop.contact_number}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -977,6 +1013,41 @@ export default function ShopDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Persistent Floating 'Book Now' Action Button (Desktop & Tablet) ──────────────── */}
+      {showFloatingBook && (
+        <div className="hidden sm:block fixed bottom-6 right-6 lg:right-8 z-50 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+          <div className="bg-[#141414]/95 backdrop-blur-xl border border-gold/40 shadow-[0_10px_35px_rgba(0,0,0,0.85)] rounded-2xl p-3 sm:p-4 flex items-center gap-4 text-white">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <p className="font-playfair font-bold text-white text-sm truncate max-w-[170px]">
+                  {shop.name}
+                </p>
+                <span className="text-[10px] font-bold text-gold bg-gold/15 border border-gold/30 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-inter">
+                  ★ {Number(shop.average_rating || 0).toFixed(1)}
+                </span>
+              </div>
+              <p className="text-white/50 text-[11px] font-inter mt-0.5">
+                {selectedServices.length > 0
+                  ? `${selectedServices.length} service${selectedServices.length > 1 ? 's' : ''} selected`
+                  : 'Quick Instant Slot Reservation'}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={proceedToBook}
+              className="px-5 py-3 rounded-xl bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-xs sm:text-sm transition-all shadow-gold hover:scale-105 active:scale-95 flex items-center gap-2 font-inter whitespace-nowrap cursor-pointer"
+            >
+              <Scissors className="w-4 h-4 text-[#0A0A0A]" />
+              <span>
+                {selectedServices.length > 0 ? `Book Now · ₹${servicesTotal}` : 'Book Appointment'}
+              </span>
+              <ChevronRight className="w-4 h-4 ml-0.5 text-[#0A0A0A]" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Mobile Sticky CTA ────────────────────────────────────────────────── */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border p-4 shadow-lg">

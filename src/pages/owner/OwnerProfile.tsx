@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Store, MapPin, Clock, Home, Star, TrendingUp, Edit2, Save, X, Upload, Loader2, Trash2, Video } from 'lucide-react';
+import { 
+  Store, MapPin, Clock, Home, Star, TrendingUp, Edit2, Save, X, 
+  Upload, Loader2, Trash2, Video, Image as ImageIcon, Sparkles, 
+  ExternalLink, CheckCircle2, Maximize2, Eye, ShieldCheck
+} from 'lucide-react';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
@@ -10,6 +14,7 @@ import { useToast } from '../../hooks/use-toast';
 import { useAuthStore } from '../../stores/authStore';
 import { getShopByOwnerId, updateShop, addShopMedia, deleteShopMedia } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { autoResizeImage } from '../../lib/imageResizer';
 
 export default function OwnerProfile() {
   const { toast } = useToast();
@@ -20,6 +25,9 @@ export default function OwnerProfile() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [heroUploading, setHeroUploading] = useState(false);
+  const [autoResizeInfo, setAutoResizeInfo] = useState<string | null>(null);
 
   // Editable fields
   const [editName, setEditName] = useState('');
@@ -204,39 +212,203 @@ export default function OwnerProfile() {
     }
   }
 
+  async function handleLogoUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files || !files[0] || !shop?.id) return;
+
+    const rawFile = files[0];
+    try {
+      setLogoUploading(true);
+      setAutoResizeInfo('Auto-resizing logo to 512x512 with optimal square framing...');
+
+      // Auto-resize logo using canvas
+      const resized = await autoResizeImage(rawFile, {
+        maxWidth: 512,
+        maxHeight: 512,
+        mode: 'contain',
+        format: 'image/png',
+        quality: 0.95,
+      });
+
+      setAutoResizeInfo(
+        `Logo Auto-Resized: ${resized.originalWidth}×${resized.originalHeight} (${resized.originalSizeKb} KB) → ${resized.resizedWidth}×${resized.resizedHeight} (${resized.resizedSizeKb} KB)`
+      );
+
+      const fileName = `${shop.id}/logo-${Date.now()}.png`;
+      const { error: uploadError } = await supabase.storage
+        .from('shop-media')
+        .upload(fileName, resized.file, { contentType: 'image/png', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('shop-media')
+        .getPublicUrl(fileName);
+
+      // Check if owner_photo already exists
+      const existingLogo = shop.shop_media?.find((m: any) => m.media_type === 'owner_photo');
+      if (existingLogo) {
+        await supabase
+          .from('shop_media')
+          .update({ media_url: publicUrl })
+          .eq('id', existingLogo.id);
+      } else {
+        await addShopMedia({
+          shop_id: shop.id,
+          media_type: 'owner_photo',
+          media_url: publicUrl,
+          display_order: 0,
+        });
+      }
+
+      toast({
+        title: 'Logo Auto-Resized & Saved!',
+        description: 'Salon logo has been optimized (512×512) and updated across all client templates.',
+      });
+
+      await loadShopData();
+    } catch (err: any) {
+      console.error('Error uploading logo:', err);
+      toast({
+        title: 'Logo Upload Failed',
+        description: err.message || 'Could not upload salon logo',
+        variant: 'destructive',
+      });
+    } finally {
+      setLogoUploading(false);
+      setTimeout(() => setAutoResizeInfo(null), 6000);
+      event.target.value = '';
+    }
+  }
+
+  async function handleHeroBannerUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files;
+    if (!files || !files[0] || !shop?.id) return;
+
+    const rawFile = files[0];
+    try {
+      setHeroUploading(true);
+      setAutoResizeInfo('Auto-resizing hero banner to 1920×1080 (16:9 widescreen)...');
+
+      // Auto-resize hero image to optimal 16:9 widescreen dimensions
+      const resized = await autoResizeImage(rawFile, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        mode: 'cover',
+        format: 'image/webp',
+        quality: 0.9,
+      });
+
+      setAutoResizeInfo(
+        `Hero Banner Auto-Resized: ${resized.originalWidth}×${resized.originalHeight} (${resized.originalSizeKb} KB) → ${resized.resizedWidth}×${resized.resizedHeight} (${resized.resizedSizeKb} KB)`
+      );
+
+      const fileName = `${shop.id}/hero-${Date.now()}.webp`;
+      const { error: uploadError } = await supabase.storage
+        .from('shop-media')
+        .upload(fileName, resized.file, { contentType: 'image/webp', upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('shop-media')
+        .getPublicUrl(fileName);
+
+      // Shift existing photos display_order so this new hero image is #1
+      const photos = shop.shop_media?.filter((m: any) => m.media_type === 'photo') || [];
+      for (const p of photos) {
+        await supabase
+          .from('shop_media')
+          .update({ display_order: (p.display_order || 1) + 1 })
+          .eq('id', p.id);
+      }
+
+      await addShopMedia({
+        shop_id: shop.id,
+        media_type: 'photo',
+        media_url: publicUrl,
+        display_order: 1,
+      });
+
+      toast({
+        title: 'Hero Banner Auto-Resized!',
+        description: '16:9 widescreen hero image processed and set as primary header banner.',
+      });
+
+      await loadShopData();
+    } catch (err: any) {
+      console.error('Error uploading hero banner:', err);
+      toast({
+        title: 'Hero Upload Failed',
+        description: err.message || 'Could not upload hero image',
+        variant: 'destructive',
+      });
+    } finally {
+      setHeroUploading(false);
+      setTimeout(() => setAutoResizeInfo(null), 6000);
+      event.target.value = '';
+    }
+  }
+
+  async function handleDeleteLogo() {
+    const existingLogo = shop.shop_media?.find((m: any) => m.media_type === 'owner_photo');
+    if (!existingLogo) return;
+    if (!confirm('Are you sure you want to remove your salon logo?')) return;
+
+    try {
+      await deleteShopMedia(existingLogo.id);
+      toast({
+        title: 'Logo Removed',
+        description: 'Salon logo has been removed. Letter monogram will be used as fallback.',
+      });
+      await loadShopData();
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message || 'Failed to remove logo',
+        variant: 'destructive',
+      });
+    }
+  }
+
   async function handlePhotoUpload(event: React.ChangeEvent<HTMLInputElement>) {
     const files = event.target.files;
     if (!files || !shop?.id) return;
 
     const photos = shop.shop_media?.filter((m: any) => m.media_type === 'photo') || [];
-    if (photos.length >= 5) {
+    if (photos.length >= 8) {
       toast({
         title: 'Limit Reached',
-        description: 'Maximum 5 photos allowed',
+        description: 'Maximum 8 gallery photos allowed',
         variant: 'destructive',
       });
       return;
     }
 
-    const file = files[0];
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: 'File Too Large',
-        description: 'Photo must be less than 2MB',
-        variant: 'destructive',
-      });
-      return;
-    }
+    const rawFile = files[0];
 
     try {
       setUploading(true);
+      setAutoResizeInfo('Auto-resizing gallery photo to optimized dimensions...');
 
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${shop.id}/${Date.now()}.${fileExt}`;
+      // Auto-resize gallery photo to max 1600x1200 with auto aspect ratio
+      const resized = await autoResizeImage(rawFile, {
+        maxWidth: 1600,
+        maxHeight: 1200,
+        mode: 'auto',
+        format: 'image/webp',
+        quality: 0.88,
+      });
+
+      setAutoResizeInfo(
+        `Gallery Photo Auto-Resized: ${resized.originalWidth}×${resized.originalHeight} (${resized.originalSizeKb} KB) → ${resized.resizedWidth}×${resized.resizedHeight} (${resized.resizedSizeKb} KB)`
+      );
+
+      const fileName = `${shop.id}/${Date.now()}.webp`;
 
       const { error: uploadError } = await supabase.storage
         .from('shop-media')
-        .upload(fileName, file);
+        .upload(fileName, resized.file, { contentType: 'image/webp', upsert: true });
 
       if (uploadError) throw uploadError;
 
@@ -252,8 +424,8 @@ export default function OwnerProfile() {
       });
 
       toast({
-        title: 'Photo Uploaded',
-        description: 'Your photo has been added successfully',
+        title: 'Photo Auto-Resized & Added',
+        description: 'Your salon gallery photo has been optimized and added successfully',
       });
 
       await loadShopData();
@@ -266,6 +438,8 @@ export default function OwnerProfile() {
       });
     } finally {
       setUploading(false);
+      setTimeout(() => setAutoResizeInfo(null), 6000);
+      event.target.value = '';
     }
   }
 
@@ -354,6 +528,8 @@ export default function OwnerProfile() {
   }
 
   const photos = shop.shop_media?.filter((m: any) => m.media_type === 'photo') || [];
+  const logoMedia = shop.shop_media?.find((m: any) => m.media_type === 'owner_photo');
+  const heroPhoto = photos[0];
 
   return (
     <div className="space-y-6">
@@ -388,8 +564,29 @@ export default function OwnerProfile() {
       {/* Shop Header */}
       <Card className="p-6">
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-bold">
-            {shop.name?.charAt(0) || 'S'}
+          <div className="relative group flex-shrink-0">
+            <div className="w-20 h-20 rounded-2xl border-2 border-gold/40 bg-secondary/50 overflow-hidden flex items-center justify-center p-1 shadow-md">
+              {logoMedia?.media_url ? (
+                <img
+                  src={logoMedia.media_url}
+                  alt="Salon Logo"
+                  className="w-full h-full object-contain rounded-xl"
+                />
+              ) : (
+                <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-bold">
+                  {shop.name?.charAt(0) || 'S'}
+                </div>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => document.getElementById('logo-upload-input')?.click()}
+              disabled={logoUploading}
+              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-gold hover:bg-gold-light text-[#0A0A0A] flex items-center justify-center shadow-gold transition-all duration-200"
+              title="Upload or Change Logo"
+            >
+              {logoUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            </button>
           </div>
           <div className="flex-1">
             {isEditing ? (
@@ -453,6 +650,230 @@ export default function OwnerProfile() {
               <span className="text-2xl font-bold text-warning">{shop.pending_bookings || 0}</span>
             </div>
             <p className="text-xs text-muted-foreground">Pending</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Hidden File Inputs for Logo & Hero Auto-Resize */}
+      <input
+        type="file"
+        id="logo-upload-input"
+        accept="image/png,image/jpeg,image/webp,image/svg+xml"
+        className="hidden"
+        onChange={handleLogoUpload}
+        disabled={logoUploading}
+      />
+      <input
+        type="file"
+        id="hero-banner-upload-input"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={handleHeroBannerUpload}
+        disabled={heroUploading}
+      />
+
+      {/* Auto-Resize Info Alert Banner */}
+      {autoResizeInfo && (
+        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 text-emerald-400 text-sm animate-in fade-in duration-200 shadow-sm">
+          <Sparkles className="w-5 h-5 flex-shrink-0 text-emerald-400 animate-pulse" />
+          <div className="flex-1">
+            <p className="font-semibold text-xs tracking-wide uppercase text-emerald-300">Auto-Resize Engine Processed</p>
+            <p className="text-xs text-emerald-200/90 font-mono mt-0.5">{autoResizeInfo}</p>
+          </div>
+          <button onClick={() => setAutoResizeInfo(null)} className="text-emerald-400/60 hover:text-emerald-200 text-xs px-2 py-1">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* ── Salon Template Branding: Logo & Hero Page (Auto-Resize Enabled) ── */}
+      <Card className="p-6 border-gold/30 bg-gradient-to-br from-[#161410] via-card to-card relative overflow-hidden shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-border">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Sparkles className="w-4 h-4 text-gold" />
+              <h3 className="font-playfair font-bold text-lg text-foreground">
+                Salon Template: Logo & Hero Page Branding
+              </h3>
+              <Badge variant="outline" className="text-[10px] bg-gold/10 text-gold border-gold/30">
+                Auto-Resize Enabled
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Add your salon logo and hero page banner images. Uploaded pictures are automatically resized & optimized to guarantee crisp, fast-loading visuals on all devices.
+            </p>
+          </div>
+          <a
+            href={`/shop/${shop.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-gold/10 hover:bg-gold hover:text-[#0A0A0A] text-gold border border-gold/30 transition-all self-start sm:self-auto whitespace-nowrap shadow-sm"
+          >
+            <Eye className="w-3.5 h-3.5" /> View Mini Website <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Logo Card */}
+          <div className="p-5 rounded-2xl bg-secondary/30 border border-border flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-gold" /> Salon Logo
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
+                  512×512 Auto-Fit
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-20 h-20 rounded-2xl border-2 border-gold/40 bg-background/80 overflow-hidden flex items-center justify-center p-1.5 shadow-md flex-shrink-0">
+                  {logoMedia?.media_url ? (
+                    <img
+                      src={logoMedia.media_url}
+                      alt="Salon Logo"
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  ) : (
+                    <div className="w-full h-full rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-2xl font-bold">
+                      {shop.name?.charAt(0) || 'S'}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p className="font-semibold text-foreground">
+                    {logoMedia ? 'Official Logo Active' : 'Default Monogram Used'}
+                  </p>
+                  <p className="text-[11px] leading-relaxed">
+                    Appears in header, template hero banner, search cards, and customer receipts.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-3 border-t border-border">
+              <Button
+                type="button"
+                size="sm"
+                className="flex-1 bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-xs"
+                onClick={() => document.getElementById('logo-upload-input')?.click()}
+                disabled={logoUploading}
+              >
+                {logoUploading ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <Upload className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                {logoMedia ? 'Replace Logo (Auto-Resize)' : 'Upload Logo (Auto-Resize)'}
+              </Button>
+              {logoMedia && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:bg-destructive/10"
+                  onClick={handleDeleteLogo}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Hero Banner Card */}
+          <div className="p-5 rounded-2xl bg-secondary/30 border border-border flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Maximize2 className="w-3.5 h-3.5 text-gold" /> Hero Page Banner
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gold/10 text-gold border border-gold/20">
+                  16:9 Widescreen (1920×1080)
+                </span>
+              </div>
+
+              <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-background border border-border mb-4">
+                {heroPhoto?.media_url ? (
+                  <>
+                    <img
+                      src={heroPhoto.media_url}
+                      alt="Hero Banner"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end p-2.5">
+                      <span className="text-[10px] font-medium text-white/80 bg-black/50 px-2 py-0.5 rounded backdrop-blur-sm">
+                        Primary Hero Banner (Auto-Resized)
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground p-4 text-center">
+                    <ImageIcon className="w-8 h-8 opacity-30 mb-1" />
+                    <span className="text-xs">No hero banner uploaded yet</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 pt-3 border-t border-border">
+              <Button
+                type="button"
+                size="sm"
+                className="w-full bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-xs"
+                onClick={() => document.getElementById('hero-banner-upload-input')?.click()}
+                disabled={heroUploading}
+              >
+                {heroUploading ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <Upload className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                Upload & Set Hero Banner (Auto-Resize)
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Template Mockup Strip */}
+        <div className="mt-6 pt-5 border-t border-border">
+          <p className="text-xs font-semibold text-muted-foreground mb-3 flex items-center gap-1.5">
+            <Eye className="w-3.5 h-3.5 text-gold" /> Live Template Preview (How Customers See Your Hero Page):
+          </p>
+          <div className="relative rounded-2xl overflow-hidden border border-gold/30 bg-[#0E0E0E] h-48 sm:h-56 shadow-inner">
+            {heroPhoto?.media_url ? (
+              <img
+                src={heroPhoto.media_url}
+                alt="Template preview"
+                className="w-full h-full object-cover opacity-60"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-r from-[#141414] to-[#1F1F1F]" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-transparent" />
+
+            {/* Simulated Hero Overlay */}
+            <div className="absolute inset-0 p-4 sm:p-6 flex flex-col justify-end">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#0A0A0A] border-2 border-gold/40 shadow-gold p-1 flex items-center justify-center flex-shrink-0">
+                  {logoMedia?.media_url ? (
+                    <img src={logoMedia.media_url} alt="Logo" className="w-full h-full object-contain rounded-xl" />
+                  ) : (
+                    <span className="font-playfair font-bold text-gold text-lg">{shop.name?.charAt(0) || 'S'}</span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <h4 className="font-playfair font-bold text-white text-base sm:text-xl truncate leading-tight drop-shadow-sm">
+                    {shop.name}
+                  </h4>
+                  <p className="text-white/60 text-xs italic truncate mt-0.5 font-inter">
+                    {shop.tagline || 'Luxury grooming experience'}
+                  </p>
+                  <p className="text-gold text-[11px] font-semibold flex items-center gap-1 mt-1 font-inter">
+                    <Star className="w-3 h-3 fill-gold inline" /> {Number(shop.average_rating || 0).toFixed(1)} · {shop.city}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </Card>

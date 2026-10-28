@@ -9,6 +9,7 @@ import {
 import { useToast } from '../../hooks/use-toast';
 import { getShopById, getShopStaff } from '../../lib/api';
 import type { StaffMember } from '../../types';
+import { recordSalonVisit } from '../../lib/recentlyViewed';
 
 function fmt12h(t: string) {
   if (!t) return '';
@@ -172,6 +173,7 @@ export default function ShopMiniWebsite() {
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [showHours, setShowHours] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { if (shopId) loadShop(); else navigate('/'); }, [shopId]);
@@ -191,6 +193,7 @@ export default function ShopMiniWebsite() {
       if (!data) throw new Error('Shop not found');
       setShop(data);
       setStaffList(staff || []);
+      recordSalonVisit(data);
     } catch (err: any) {
       toast({ title: 'Shop Not Found', description: err.message, variant: 'destructive' });
       setTimeout(() => navigate('/'), 2000);
@@ -201,6 +204,10 @@ export default function ShopMiniWebsite() {
     .filter((m: any) => m.media_type === 'photo')
     .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
     .map((m: any) => m.media_url as string);
+
+  const logoUrl: string | undefined = (shop?.shop_media ?? []).find(
+    (m: any) => m.media_type === 'owner_photo'
+  )?.media_url;
 
   const videoMedia = (shop?.shop_media ?? []).find((m: any) => m.media_type === 'video');
   const activeServices = (shop?.services ?? []).filter((s: any) => s.is_active !== false);
@@ -253,9 +260,20 @@ export default function ShopMiniWebsite() {
       <div className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-300 ${stickyVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}>
         <div className="bg-[#141414] border-t border-gold/20 px-4 py-3">
           <div className="max-w-3xl mx-auto flex items-center gap-4">
-            <div className="flex-1 min-w-0">
-              <p className="font-playfair font-bold text-white text-sm truncate">{shop.name}</p>
-              <p className="text-xs text-white/30 font-inter">{selectedServices.length > 0 ? `${selectedServices.length} selected · ~${totalDuration} min` : 'Select services or book'}</p>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {logoUrl ? (
+                <div className="w-9 h-9 rounded-xl bg-[#0A0A0A] border border-gold/30 p-0.5 flex-shrink-0 overflow-hidden shadow-sm">
+                  <img src={logoUrl} alt="Logo" className="w-full h-full object-contain rounded-lg" />
+                </div>
+              ) : (
+                <div className="w-9 h-9 rounded-xl bg-gold/15 border border-gold/30 flex items-center justify-center font-playfair font-bold text-gold text-xs flex-shrink-0">
+                  {shop.name?.charAt(0) || 'S'}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="font-playfair font-bold text-white text-sm truncate">{shop.name}</p>
+                <p className="text-xs text-white/30 font-inter truncate">{selectedServices.length > 0 ? `${selectedServices.length} selected · ~${totalDuration} min` : 'Select services or book'}</p>
+              </div>
             </div>
             {selectedServices.length > 0 && (
               <div className="text-right flex-shrink-0">
@@ -285,14 +303,45 @@ export default function ShopMiniWebsite() {
           </button>
         </div>
 
-        {/* Hero image */}
-        <div className="relative h-[55vh] min-h-[380px] bg-[#141414] overflow-hidden">
-          {photos[0] ? (
-            <><img src={photos[0]} alt={shop.name} className="w-full h-full object-cover opacity-70" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/30 to-[#0A0A0A]/20" /></>
+        {/* Hero image with Auto-Resize container */}
+        <div className="relative h-[55vh] min-h-[400px] max-h-[620px] bg-[#141414] overflow-hidden">
+          {photos.length > 0 ? (
+            <>
+              <img
+                src={photos[activeHeroIndex] || photos[0]}
+                alt={shop.name}
+                className="w-full h-full object-cover object-center opacity-70 transition-all duration-700 select-none"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-[#0A0A0A]/20" />
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Scissors className="w-16 h-16 text-white/10" />
+            </div>
+          )}
+
+          {/* Multiple Hero Photos Slider Controls (if owner added multiple images) */}
+          {photos.length > 1 && (
+            <div className="absolute top-20 right-5 z-20 flex items-center gap-1.5 bg-[#0A0A0A]/75 backdrop-blur-md border border-gold/30 px-3 py-1 rounded-full shadow-gold/10">
+              <span className="text-[10px] text-white/60 font-inter font-medium mr-0.5">
+                {activeHeroIndex + 1}/{photos.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setActiveHeroIndex((i) => (i === 0 ? photos.length - 1 : i - 1))}
+                className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-colors"
+                title="Previous hero photo"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveHeroIndex((i) => (i === photos.length - 1 ? 0 : i + 1))}
+                className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-xs transition-colors"
+                title="Next hero photo"
+              >
+                ›
+              </button>
             </div>
           )}
 
@@ -306,13 +355,32 @@ export default function ShopMiniWebsite() {
             </span>
           </div>
 
-          {/* Name */}
+          {/* Salon Logo, Name & Branding in Hero */}
           <div className="absolute bottom-0 left-0 right-0 px-5 pb-8">
-            <h1 className="font-playfair font-bold text-white leading-tight mb-2" style={{ fontSize: 'clamp(2rem, 5vw, 3rem)' }}>
-              {shop.name}
-            </h1>
-            {shop.tagline && <p className="text-white/40 text-sm italic mb-2 font-inter">"{shop.tagline}"</p>}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/40 text-sm font-inter">
+            <div className="flex items-center gap-3.5 sm:gap-4 mb-2.5">
+              {/* Salon Logo with Auto-Resize container */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[#0A0A0A]/90 border-2 border-gold/40 shadow-gold p-1 flex-shrink-0 backdrop-blur-md overflow-hidden flex items-center justify-center">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={`${shop.name} logo`}
+                    className="w-full h-full object-contain rounded-xl"
+                  />
+                ) : (
+                  <span className="font-playfair font-bold text-gold text-2xl sm:text-3xl">
+                    {shop.name?.charAt(0) || 'S'}
+                  </span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-playfair font-bold text-white leading-tight" style={{ fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)' }}>
+                  {shop.name}
+                </h1>
+                {shop.tagline && <p className="text-white/50 text-xs sm:text-sm italic font-inter mt-0.5 line-clamp-1">"{shop.tagline}"</p>}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-white/40 text-xs sm:text-sm font-inter">
               <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-gold/50" />{shop.address}, {shop.city}</span>
               {shop.contact_number && <span className="flex items-center gap-1.5"><Phone className="w-3.5 h-3.5 text-gold/50" />{shop.contact_number}</span>}
             </div>
