@@ -75,9 +75,13 @@ export interface Shop {
     end: string;
   };
   weeklyOff: string;
-  homeServiceAvailable: boolean;
   homeServiceCharge: number;
   serviceRadius: number;
+  instagram_handle?: string;
+  instagram_url?: string;
+  facebook_handle?: string;
+  facebook_url?: string;
+  website_url?: string;
   status: 'pending' | 'approved' | 'rejected';
   services: Service[];
   reviews: Review[];

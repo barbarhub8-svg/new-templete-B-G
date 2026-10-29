@@ -72,24 +72,36 @@ export async function getShopById(shopId: string) {
  * Get shop by owner ID
  */
 export async function getShopByOwnerId(ownerId: string) {
-  const { data: shop, error } = await supabase
-    .from('shops')
-    .select(`
-      *,
-      services(*),
-      shop_media(*)
-    `)
-    .eq('owner_id', ownerId)
-    .single();
+  try {
+    const { data: shop, error } = await supabase
+      .from('shops')
+      .select(`
+        *,
+        services(*),
+        shop_media(*)
+      `)
+      .eq('owner_id', ownerId)
+      .single();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // No shop found
-      return null;
-    }
-    throw error;
+    if (!error && shop) return shop;
+  } catch (err) {
+    console.warn('Supabase fetch shop by owner warning:', err);
   }
-  return shop;
+
+  // Local fallback check
+  try {
+    const localShops = JSON.parse(localStorage.getItem('nexora_custom_shops') || '[]');
+    const local = localShops.find((s: any) => s.owner_id === ownerId || s.ownerId === ownerId);
+    if (local) {
+      const localServices = JSON.parse(localStorage.getItem('nexora_custom_services') || '[]');
+      local.services = localServices.filter((svc: any) => svc.shop_id === local.id);
+      return local;
+    }
+  } catch (e) {
+    console.warn('Local fallback read failed:', e);
+  }
+
+  return null;
 }
 
 /**
@@ -188,12 +200,39 @@ export async function updateService(serviceId: string, updates: Partial<DbServic
  * Delete service
  */
 export async function deleteService(serviceId: string) {
+  // First, get the service to know its shop_id
+  const { data: service } = await supabase
+    .from('services')
+    .select('shop_id')
+    .eq('id', serviceId)
+    .single();
+
   const { error } = await supabase
     .from('services')
     .delete()
     .eq('id', serviceId);
 
   if (error) throw error;
+
+  if (service?.shop_id) {
+    // Clean up staff assigned_service_ids
+    const { data: staffList } = await supabase
+      .from('staff')
+      .select('id, assigned_service_ids')
+      .eq('shop_id', service.shop_id);
+
+    if (staffList) {
+      for (const staff of staffList) {
+        if (staff.assigned_service_ids && staff.assigned_service_ids.includes(serviceId)) {
+          const updatedServices = staff.assigned_service_ids.filter((id: string) => id !== serviceId);
+          await supabase
+            .from('staff')
+            .update({ assigned_service_ids: updatedServices })
+            .eq('id', staff.id);
+        }
+      }
+    }
+  }
 }
 
 // =====================================================
@@ -730,7 +769,26 @@ export async function getShopStaff(shopId: string, onlyActive = true): Promise<S
 
     const { data, error } = await query;
     if (error) throw error;
-    return (data || []) as StaffMember[];
+
+    // Fetch active service IDs for sanitization
+    const { data: servicesData } = await supabase
+      .from('services')
+      .select('id')
+      .eq('shop_id', shopId);
+    
+    const activeServiceIds = new Set((servicesData || []).map((s: any) => s.id));
+
+    const staffList = (data || []) as StaffMember[];
+    return staffList.map((staff) => {
+      if (staff.assigned_service_ids && staff.assigned_service_ids.length > 0 && activeServiceIds.size > 0) {
+        const validIds = staff.assigned_service_ids.filter((id) => activeServiceIds.has(id));
+        if (validIds.length !== staff.assigned_service_ids.length) {
+          supabase.from('staff').update({ assigned_service_ids: validIds }).eq('id', staff.id).then();
+          return { ...staff, assigned_service_ids: validIds };
+        }
+      }
+      return staff;
+    });
   } catch (err) {
     if (DUMMY_STAFF_MEMBERS[shopId]) {
       return DUMMY_STAFF_MEMBERS[shopId] as StaffMember[];

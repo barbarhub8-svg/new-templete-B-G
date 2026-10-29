@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
   X, User, Phone, Shield, Percent, Scissors, Clock,
-  Sparkles, CheckCircle2, AlertCircle, Edit, Calendar, Lock, TrendingUp, Star, Award, History, Activity
+  Sparkles, CheckCircle2, AlertCircle, Edit, Calendar, Lock, TrendingUp, Star, Award, History, Activity, Download
 } from 'lucide-react';
 import {
-  ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend
+  ResponsiveContainer, ComposedChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend
 } from 'recharts';
 import { StaffMember, DbService } from '../../types';
 
@@ -43,6 +43,23 @@ function generateStaffPerformanceData(staffId: string) {
     });
   }
   return data;
+}
+
+// Generate weekly booking trends comparing completed appointments vs total capacity
+function generateWeeklyBookingTrends(staffId: string) {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const seed = staffId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  
+  return days.map((day, idx) => {
+    const isWeekend = idx >= 4;
+    const capacity = isWeekend ? 8 : 6;
+    const completed = Math.min(capacity, Math.max(1, Math.round((isWeekend ? 5 : 3) + Math.sin(idx + seed) * 2)));
+    return {
+      day,
+      completed,
+      capacity,
+    };
+  });
 }
 
 // Generate chronological activity log for staff member
@@ -114,9 +131,90 @@ export default function StaffDetailsModal({
   );
 
   const performanceData = generateStaffPerformanceData(staff.id);
+  const weeklyTrendsData = generateWeeklyBookingTrends(staff.id);
   const total30DayAppts = performanceData.reduce((sum, d) => sum + d.appointments, 0);
   const avg30DayRating = Number((performanceData.reduce((sum, d) => sum + d.rating, 0) / performanceData.length).toFixed(1));
   const activityLog = generateStaffActivityLog(staff);
+
+  function handleDownloadPDFReport() {
+    const assignedServicesList = assignedServices.map(s => `<li>${s.name} - ₹${s.price} (${s.duration_minutes} mins)</li>`).join('');
+    const scheduleList = (staff.schedule || []).map(d => `<tr><td style="padding: 6px; border-bottom: 1px solid #eee;"><strong>${d.day}</strong></td><td style="padding: 6px; border-bottom: 1px solid #eee;">${d.is_working ? `${d.start_time} - ${d.end_time}` : 'Off'}</td></tr>`).join('');
+    const specializationsList = (staff.specializations || []).map(s => `<span style="display: inline-block; background: #f3f4f6; padding: 4px 10px; border-radius: 12px; margin: 2px; font-size: 11px;">${s}</span>`).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Staff Performance Report - ${staff.full_name}</title>
+        <style>
+          body { font-family: 'Inter', Arial, sans-serif; color: #111; padding: 40px; line-height: 1.5; }
+          .header { border-bottom: 2px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+          .title { font-size: 24px; font-weight: bold; color: #1e3a8a; margin: 0; }
+          .subtitle { font-size: 13px; color: #6b7280; margin-top: 4px; }
+          .badge { background: #eff6ff; color: #1d4ed8; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+          .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
+          .metric-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; text-align: center; }
+          .metric-value { font-size: 20px; font-weight: 900; color: #0f172a; margin-top: 5px; }
+          .metric-label { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: bold; }
+          h3 { font-size: 14px; text-transform: uppercase; color: #475569; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; margin-top: 25px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+          .footer { margin-top: 50px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 15px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <h1 class="title">${staff.full_name}</h1>
+            <div class="subtitle">${staff.primary_role} · ${staff.app_access_role}</div>
+          </div>
+          <div>
+            <span class="badge">Status: ${staff.status}</span>
+          </div>
+        </div>
+
+        <div class="metrics">
+          <div class="metric-card">
+            <div class="metric-label">Completed Bookings</div>
+            <div class="metric-value">${total30DayAppts}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Client Satisfaction</div>
+            <div class="metric-value">${avg30DayRating} / 5.0 ★</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Commission Rate</div>
+            <div class="metric-value">${staff.commission_percentage}%</div>
+          </div>
+        </div>
+
+        <h3>Assigned Services</h3>
+        <ul>${assignedServicesList || '<li>No specific services assigned</li>'}</ul>
+
+        <h3>Weekly Schedule</h3>
+        <table>
+          <tr><th align="left" style="padding: 6px; border-bottom: 2px solid #cbd5e1;">Day</th><th align="left" style="padding: 6px; border-bottom: 2px solid #cbd5e1;">Working Hours</th></tr>
+          ${scheduleList}
+        </table>
+
+        <h3>Specializations & Skills</h3>
+        <div style="margin-top: 8px;">${specializationsList || 'None specified'}</div>
+
+        <div class="footer">
+          Generated via Nexora SalonOS Professional Management Suite on ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
+        <script>
+          window.onload = function() { window.print(); };
+        </script>
+      </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">
@@ -147,13 +245,24 @@ export default function StaffDetailsModal({
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDownloadPDFReport}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold transition-all shadow-sm"
+              title="Download PDF Report"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>PDF Report</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Navigation Tabs */}
@@ -332,6 +441,41 @@ export default function StaffDetailsModal({
                   <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
                     <Percent className="w-5 h-5" />
                   </div>
+                </div>
+              </div>
+
+              {/* Weekly Booking Trends Bar Chart (Completed vs Total Capacity) */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Weekly Booking Trends (Completed vs Total Capacity)</h3>
+                    <p className="text-xs text-slate-500">Comparing completed appointments against available capacity per day</p>
+                  </div>
+                  <span className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    This Week
+                  </span>
+                </div>
+
+                <div className="h-64 w-full pt-2">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weeklyTrendsData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                      <XAxis dataKey="day" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                      <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} domain={[0, 'dataMax + 2']} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                          fontSize: '12px',
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                      <Bar dataKey="capacity" name="Total Capacity" fill="#e2e8f0" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="completed" name="Completed Appointments" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={20} />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 

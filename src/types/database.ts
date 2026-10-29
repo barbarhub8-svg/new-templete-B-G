@@ -59,6 +59,11 @@ export interface Shop {
   pending_bookings: number;
   average_rating: number;
   total_reviews: number;
+  instagram_handle?: string | null;
+  instagram_url?: string | null;
+  facebook_handle?: string | null;
+  facebook_url?: string | null;
+  website_url?: string | null;
   created_at: string;
   updated_at: string;
 }

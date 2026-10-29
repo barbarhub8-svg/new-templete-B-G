@@ -155,16 +155,16 @@ function SlotGroup({
               title={slot.reason}
               className={`py-2.5 px-1 rounded-xl text-xs font-semibold border-2 transition-all duration-150 relative
                 ${isSelected
-                  ? 'border-primary bg-primary text-white shadow-md scale-105'
+                  ? 'border-gold bg-gold text-[#0A0A0A] font-bold shadow-gold scale-105'
                   : slot.available
-                  ? 'border-border bg-white hover:border-primary/60 hover:bg-primary/5 text-foreground'
-                  : 'border-border/40 bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50'
+                  ? 'border-white/10 bg-[#181818] hover:border-gold/60 hover:bg-gold/10 text-white'
+                  : 'border-white/5 bg-white/5 text-white/30 cursor-not-allowed opacity-40 line-through'
                 }`}
             >
               {formatTime12h(slot.time)}
               {isSelected && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full flex items-center justify-center">
-                  <Check className="w-2 h-2 text-white" />
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gold rounded-full flex items-center justify-center border border-[#0A0A0A]">
+                  <Check className="w-2 h-2 text-[#0A0A0A]" strokeWidth={3} />
                 </span>
               )}
             </button>
@@ -269,10 +269,10 @@ function SuggestTimeModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-[#141414] border border-gold/30 rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden text-white">
 
         {/* ── Modal Header ──────────────────────────────────────────────── */}
         <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
@@ -321,20 +321,20 @@ function SuggestTimeModal({
                     }}
                     className={`flex-shrink-0 flex flex-col items-center px-3 py-2.5 rounded-xl border-2 min-w-[52px] transition-all ${
                       isSelected
-                        ? 'border-primary bg-primary text-white shadow-md'
+                        ? 'border-gold bg-gold text-[#0A0A0A] font-bold shadow-gold scale-105'
                         : day.isOff
-                        ? 'border-border bg-muted/30 opacity-40 cursor-not-allowed'
-                        : 'border-border bg-white hover:border-primary/50 hover:bg-primary/5'
+                        ? 'border-white/5 bg-white/5 opacity-30 cursor-not-allowed text-white/30'
+                        : 'border-white/10 bg-[#181818] text-white hover:border-gold/50 hover:bg-gold/10'
                     }`}
                   >
-                    <span className={`text-xs font-medium ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}>
+                    <span className={`text-xs font-medium ${isSelected ? 'text-[#0A0A0A]' : 'text-white/60'}`}>
                       {day.label}
                     </span>
-                    <span className={`text-base font-bold leading-tight ${isSelected ? 'text-white' : ''}`}>
+                    <span className={`text-base font-bold leading-tight ${isSelected ? 'text-[#0A0A0A]' : 'text-white'}`}>
                       {day.sublabel}
                     </span>
                     {day.isToday && (
-                      <span className={`text-[9px] font-semibold mt-0.5 ${isSelected ? 'text-white/80' : 'text-primary'}`}>
+                      <span className={`text-[9px] font-bold mt-0.5 ${isSelected ? 'text-[#0A0A0A]' : 'text-gold'}`}>
                         TODAY
                       </span>
                     )}
@@ -388,17 +388,17 @@ function SuggestTimeModal({
                   />
 
                   {/* Legend */}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                  <div className="flex items-center gap-4 text-xs text-white/50 mt-1 font-inter">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded border-2 border-border bg-white" />
+                      <div className="w-3 h-3 rounded border border-white/20 bg-[#181818]" />
                       Available
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded border-2 border-primary bg-primary" />
+                      <div className="w-3 h-3 rounded border border-gold bg-gold" />
                       Selected
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <div className="w-3 h-3 rounded border-2 border-border bg-muted/40 opacity-50" />
+                      <div className="w-3 h-3 rounded border border-white/10 bg-white/5 opacity-50" />
                       Booked
                     </div>
                   </div>
@@ -409,22 +409,22 @@ function SuggestTimeModal({
 
           {/* Comparison preview */}
           {selectedDate && selectedTime && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <p className="text-xs text-blue-700 font-semibold mb-3 uppercase tracking-wide">
+            <div className="p-4 bg-gold/10 border border-gold/30 rounded-xl">
+              <p className="text-xs text-gold font-bold mb-3 uppercase tracking-wide font-inter">
                 Suggestion Preview
               </p>
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-white/70 rounded-xl border border-blue-200">
-                  <p className="text-[10px] text-muted-foreground font-medium mb-1">Was Requested</p>
-                  <p className="font-semibold text-xs">{formatDateReadable(booking.requested_date)}</p>
-                  <p className="text-xs text-muted-foreground">{formatTime12h(booking.requested_time)}</p>
+                <div className="p-3 bg-[#181818] rounded-xl border border-white/10">
+                  <p className="text-[10px] text-white/40 font-medium mb-1">Was Requested</p>
+                  <p className="font-semibold text-xs text-white">{formatDateReadable(booking.requested_date)}</p>
+                  <p className="text-xs text-white/60">{formatTime12h(booking.requested_time)}</p>
                 </div>
-                <div className="p-3 bg-blue-100 rounded-xl border-2 border-blue-400">
-                  <p className="text-[10px] text-blue-700 font-semibold mb-1 flex items-center gap-1">
-                    <ChevronRight className="w-3 h-3" /> New Suggestion
+                <div className="p-3 bg-gold/15 rounded-xl border-2 border-gold">
+                  <p className="text-[10px] text-gold font-bold mb-1 flex items-center gap-1">
+                    <ChevronRight className="w-3 h-3 text-gold" /> New Suggestion
                   </p>
-                  <p className="font-bold text-xs text-blue-900">{formatDateReadable(selectedDate)}</p>
-                  <p className="text-xs text-blue-700 font-medium">{formatTime12h(selectedTime)}</p>
+                  <p className="font-bold text-xs text-white">{formatDateReadable(selectedDate)}</p>
+                  <p className="text-xs text-gold font-medium">{formatTime12h(selectedTime)}</p>
                 </div>
               </div>
             </div>

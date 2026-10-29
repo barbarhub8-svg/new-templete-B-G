@@ -13,6 +13,7 @@ import { Badge } from '../../components/ui/badge';
 import { Separator } from '../../components/ui/separator';
 import { useToast } from '../../hooks/use-toast';
 import { getShopById, getBookingsForSlotCheck, createBooking, getShopStaff } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { generateTimeSlots, calculateTotalDuration, type TimeSlot } from '../../lib/slotManagement';
 import type { StaffMember } from '../../types';
 
@@ -125,17 +126,17 @@ function SlotGroup({
               className={`
                 relative py-2.5 px-1 rounded-xl text-xs font-semibold border-2 transition-all duration-150
                 ${isSelected
-                  ? 'border-primary bg-primary text-white shadow-md scale-105'
+                  ? 'border-gold bg-gold text-[#0A0A0A] font-bold shadow-gold scale-105'
                   : slot.available
-                  ? 'border-border bg-white hover:border-primary/60 hover:bg-primary/5 text-foreground'
-                  : 'border-border/40 bg-muted/40 text-muted-foreground cursor-not-allowed opacity-50'
+                  ? 'border-white/10 bg-[#181818] hover:border-gold/60 hover:bg-gold/10 text-white font-medium'
+                  : 'border-white/5 bg-white/5 text-white/30 cursor-not-allowed opacity-40 line-through'
                 }
               `}
             >
               {formatTime12h(slot.time)}
               {isSelected && (
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full flex items-center justify-center">
-                  <Check className="w-2 h-2 text-white" />
+                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-gold rounded-full flex items-center justify-center border border-[#0A0A0A]">
+                  <Check className="w-2 h-2 text-[#0A0A0A]" strokeWidth={3} />
                 </span>
               )}
             </button>
@@ -157,24 +158,24 @@ function ServiceCard({
       onClick={onToggle}
       className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-150 text-left ${
         selected
-          ? 'border-primary bg-primary/5 shadow-sm'
-          : 'border-border bg-white hover:border-primary/40 hover:bg-secondary/30'
+          ? 'border-gold bg-gold/10 text-white shadow-gold'
+          : 'border-white/10 bg-[#181818] hover:border-gold/40 hover:bg-[#222222] text-white'
       }`}
     >
       <div className="flex items-center gap-3">
         {/* Custom checkbox */}
         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-          selected ? 'bg-primary border-primary' : 'border-muted-foreground/40'
+          selected ? 'bg-gold border-gold' : 'border-white/20 bg-white/5'
         }`}>
-          {selected && <Check className="w-3 h-3 text-white" />}
+          {selected && <Check className="w-3 h-3 text-[#0A0A0A]" strokeWidth={3} />}
         </div>
         <div>
-          <p className="font-semibold text-sm">{service.name}</p>
-          <p className="text-xs text-muted-foreground">{service.duration_minutes} mins</p>
+          <p className={`font-semibold text-sm ${selected ? 'text-gold' : 'text-white'}`}>{service.name}</p>
+          <p className="text-xs text-white/50">{service.duration_minutes} mins</p>
         </div>
       </div>
       <div className={`flex items-center gap-0.5 font-bold text-base transition-colors ${
-        selected ? 'text-primary' : 'text-muted-foreground'
+        selected ? 'text-gold' : 'text-white/70'
       }`}>
         <IndianRupee className="w-4 h-4" />
         {service.price}
@@ -187,13 +188,13 @@ function ServiceCard({
 
 function SuccessOverlay() {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
-      <div className="text-center">
-        <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-          <CheckCircle className="w-12 h-12 text-emerald-500" />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A0A0A]/95 backdrop-blur-md">
+      <div className="text-center p-8 bg-[#141414] border border-gold/40 rounded-2xl shadow-gold max-w-md">
+        <div className="w-20 h-20 bg-emerald-500/15 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+          <CheckCircle className="w-10 h-10 text-emerald-400" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">Booking Sent!</h2>
-        <p className="text-muted-foreground">Redirecting to confirmation…</p>
+        <h2 className="text-2xl font-playfair font-bold text-white mb-2">Booking Sent!</h2>
+        <p className="text-white/60 text-sm font-inter">Redirecting to confirmation…</p>
       </div>
     </div>
   );
@@ -246,6 +247,31 @@ export default function BookingPage() {
       loadShopData();
       loadStaffData();
     }
+  }, [shopId]);
+
+  // Realtime subscription for instant staff availability & schedule sync
+  useEffect(() => {
+    if (!shopId || shopId.startsWith('dummy-')) return;
+
+    const channel = supabase
+      .channel(`staff-realtime-${shopId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'staff',
+          filter: `shop_id=eq.${shopId}`,
+        },
+        () => {
+          loadStaffData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [shopId]);
 
   async function loadShopData() {
@@ -615,27 +641,27 @@ export default function BookingPage() {
                           className={`p-4 rounded-xl border-2 text-left transition-all ${
                             serviceType === type
                               ? type === 'in-shop'
-                                ? 'border-primary bg-primary/5'
-                                : 'border-emerald-500 bg-emerald-50'
+                                ? 'border-gold bg-gold/15 text-gold shadow-gold'
+                                : 'border-emerald-500 bg-emerald-500/15 text-emerald-400'
                               : disabled
-                              ? 'border-border bg-muted/30 opacity-50 cursor-not-allowed'
-                              : 'border-border hover:border-primary/40'
+                              ? 'border-white/5 bg-white/5 opacity-40 cursor-not-allowed text-white/30'
+                              : 'border-white/10 bg-[#181818] hover:border-gold/40 text-white'
                           }`}
                         >
                           <Icon className={`w-6 h-6 mb-2 ${
                             serviceType === type
-                              ? type === 'in-shop' ? 'text-primary' : 'text-emerald-600'
-                              : 'text-muted-foreground'
+                              ? type === 'in-shop' ? 'text-gold' : 'text-emerald-400'
+                              : 'text-white/40'
                           }`} />
-                          <p className="font-semibold text-sm">{label}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
+                          <p className="font-semibold text-sm text-white">{label}</p>
+                          <p className="text-xs text-white/50 mt-0.5">{sub}</p>
                         </button>
                       ))}
                     </div>
 
                     {/* Home service radius note */}
                     {serviceType === 'home' && shop.home_service_available && (
-                      <div className="flex items-start gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-lg mb-4 text-xs text-emerald-700">
+                      <div className="flex items-start gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg mb-4 text-xs text-emerald-400">
                         <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                         Home service available within {shop.service_radius_km} km radius
                       </div>
@@ -644,7 +670,7 @@ export default function BookingPage() {
                     {/* Services list */}
                     <div className="space-y-2.5">
                       {activeServices.length === 0 ? (
-                        <p className="text-muted-foreground text-sm text-center py-6">
+                        <p className="text-white/40 text-sm text-center py-6">
                           No services available at this shop
                         </p>
                       ) : (
@@ -662,7 +688,7 @@ export default function BookingPage() {
                     {step1Done && (
                       <Button
                         type="button"
-                        className="w-full mt-5"
+                        className="w-full mt-5 bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold"
                         onClick={() => setStep(2)}
                       >
                         Continue to Date & Time
@@ -674,24 +700,24 @@ export default function BookingPage() {
               </Card>
 
               {/* ── STEP 2: Date & Time ─────────────────────────────────── */}
-              <Card className={`overflow-hidden transition-all ${step < 2 && !step1Done ? 'opacity-40 pointer-events-none' : ''}`}>
+              <Card className={`overflow-hidden transition-all bg-[#141414] border-white/10 ${step < 2 && !step1Done ? 'opacity-40 pointer-events-none' : ''}`}>
                 <div
-                  className="flex items-center justify-between p-5 cursor-pointer hover:bg-secondary/30 transition-colors"
+                  className="flex items-center justify-between p-5 cursor-pointer hover:bg-white/5 transition-colors"
                   onClick={() => step1Done && setStep(2)}
                 >
                   <div className="flex items-center gap-3">
                     <StepBadge n={2} active={step === 2} done={step2Done} />
                     <div>
-                      <p className="font-semibold">Date, Time & Specialist</p>
+                      <p className="font-semibold text-white">Date, Time & Specialist</p>
                       {step2Done && step !== 2 && (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-white/50">
                           {selectedDate} at {formatTime12h(selectedTime)} · {selectedStaff ? selectedStaff.full_name : 'Any Specialist'}
                         </p>
                       )}
                     </div>
                   </div>
                   {step2Done && step !== 2 && (
-                    <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 border text-xs">Done</Badge>
+                    <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 border text-xs">Done</Badge>
                   )}
                 </div>
 
@@ -700,11 +726,11 @@ export default function BookingPage() {
                     {/* Choose Specialist */}
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2.5">
-                        <p className="text-sm font-medium flex items-center gap-1.5">
-                          <Users className="w-4 h-4 text-primary" />
+                        <p className="text-sm font-medium flex items-center gap-1.5 text-white">
+                          <Users className="w-4 h-4 text-gold" />
                           Select Specialist
                         </p>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-xs text-white/50">
                           {selectedStaff ? selectedStaff.full_name : 'Any Available Specialist'}
                         </span>
                       </div>
@@ -719,21 +745,21 @@ export default function BookingPage() {
                           }}
                           className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                             selectedStaff === null
-                              ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary'
-                              : 'border-border bg-white hover:border-primary/40'
+                              ? 'border-gold bg-gold/15 shadow-gold ring-1 ring-gold text-white'
+                              : 'border-white/10 bg-[#181818] hover:border-gold/40 text-white'
                           }`}
                         >
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
-                            selectedStaff === null ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'
+                            selectedStaff === null ? 'bg-gold text-[#0A0A0A]' : 'bg-white/10 text-white/60'
                           }`}>
                             <Users className="w-5 h-5" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between">
-                              <p className="font-semibold text-xs truncate">Any Specialist</p>
-                              {selectedStaff === null && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                              <p className={`font-semibold text-xs truncate ${selectedStaff === null ? 'text-gold' : 'text-white'}`}>Any Specialist</p>
+                              {selectedStaff === null && <Check className="w-3.5 h-3.5 text-gold flex-shrink-0" />}
                             </div>
-                            <p className="text-[11px] text-muted-foreground truncate">Fastest booking</p>
+                            <p className="text-[11px] text-white/50 truncate">Fastest booking</p>
                           </div>
                         </button>
 
@@ -750,29 +776,29 @@ export default function BookingPage() {
                               }}
                               className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left relative ${
                                 isSelected
-                                  ? 'border-primary bg-primary/5 shadow-sm ring-1 ring-primary'
-                                  : 'border-border bg-white hover:border-primary/40'
+                                  ? 'border-gold bg-gold/15 shadow-gold ring-1 ring-gold text-white'
+                                  : 'border-white/10 bg-[#181818] hover:border-gold/40 text-white'
                               }`}
                             >
                               {staff.profile_photo_url ? (
                                 <img
                                   src={staff.profile_photo_url}
                                   alt={staff.full_name}
-                                  className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-border"
+                                  className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gold/30"
                                 />
                               ) : (
-                                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-gold/15 text-gold font-bold text-xs flex items-center justify-center flex-shrink-0 border border-gold/30">
                                   {staff.full_name.slice(0, 2).toUpperCase()}
                                 </div>
                               )}
                               <div className="min-w-0 flex-1">
                                 <div className="flex items-center justify-between">
-                                  <p className="font-semibold text-xs truncate">{staff.full_name}</p>
-                                  {isSelected && <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />}
+                                  <p className={`font-semibold text-xs truncate ${isSelected ? 'text-gold' : 'text-white'}`}>{staff.full_name}</p>
+                                  {isSelected && <Check className="w-3.5 h-3.5 text-gold flex-shrink-0" />}
                                 </div>
-                                <p className="text-[11px] text-muted-foreground truncate">{staff.primary_role}</p>
+                                <p className="text-[11px] text-white/50 truncate">{staff.primary_role}</p>
                                 {staff.specializations && staff.specializations.length > 0 && (
-                                  <span className="text-[10px] text-primary/80 truncate block">
+                                  <span className="text-[10px] text-gold/80 truncate block">
                                     {staff.specializations.slice(0, 2).join(', ')}
                                   </span>
                                 )}
@@ -784,10 +810,10 @@ export default function BookingPage() {
                     </div>
 
                     {/* Date selector — pill strip */}
-                    <p className="text-sm font-medium mb-3">
+                    <p className="text-sm font-medium mb-3 text-white">
                       Choose a Date
                       {!step1Done && (
-                        <span className="text-xs text-muted-foreground ml-2">(select services first)</span>
+                        <span className="text-xs text-white/40 ml-2">(select services first)</span>
                       )}
                     </p>
                     <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
@@ -804,25 +830,25 @@ export default function BookingPage() {
                             }}
                             className={`flex-shrink-0 flex flex-col items-center px-3 py-2.5 rounded-xl border-2 min-w-[52px] transition-all ${
                               isSelected
-                                ? 'border-primary bg-primary text-white shadow-md'
+                                ? 'border-gold bg-gold text-[#0A0A0A] shadow-gold font-bold scale-105'
                                 : day.isOff
-                                ? 'border-border bg-muted/30 opacity-40 cursor-not-allowed'
-                                : 'border-border bg-white hover:border-primary/50 hover:bg-primary/5'
+                                ? 'border-white/5 bg-white/5 opacity-30 cursor-not-allowed text-white/30'
+                                : 'border-white/10 bg-[#181818] text-white hover:border-gold/50 hover:bg-gold/10'
                             }`}
                           >
-                            <span className={`text-xs font-medium ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}>
+                            <span className={`text-xs font-medium ${isSelected ? 'text-[#0A0A0A]' : 'text-white/60'}`}>
                               {day.label}
                             </span>
-                            <span className={`text-base font-bold leading-tight ${isSelected ? 'text-white' : ''}`}>
+                            <span className={`text-base font-bold leading-tight ${isSelected ? 'text-[#0A0A0A]' : 'text-white'}`}>
                               {day.sublabel}
                             </span>
                             {day.isToday && (
-                              <span className={`text-[9px] font-medium mt-0.5 ${isSelected ? 'text-white/80' : 'text-primary'}`}>
+                              <span className={`text-[9px] font-bold mt-0.5 ${isSelected ? 'text-[#0A0A0A]' : 'text-gold'}`}>
                                 TODAY
                               </span>
                             )}
                             {day.isOff && (
-                              <span className="text-[9px] text-muted-foreground mt-0.5">OFF</span>
+                              <span className="text-[9px] text-white/30 mt-0.5">OFF</span>
                             )}
                           </button>
                         );
@@ -891,17 +917,17 @@ export default function BookingPage() {
                               selected={selectedTime}
                               onSelect={setSelectedTime}
                             />
-                            <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-3 mt-3 text-xs text-white/50 font-inter">
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded border-2 border-border bg-white" />
+                                <div className="w-3 h-3 rounded border border-white/20 bg-[#181818]" />
                                 Available
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded border-2 border-primary bg-primary" />
+                                <div className="w-3 h-3 rounded border border-gold bg-gold" />
                                 Selected
                               </div>
                               <div className="flex items-center gap-1.5">
-                                <div className="w-3 h-3 rounded border-2 border-border bg-muted/40 opacity-50" />
+                                <div className="w-3 h-3 rounded border border-white/10 bg-white/5 opacity-50" />
                                 Booked
                               </div>
                             </div>

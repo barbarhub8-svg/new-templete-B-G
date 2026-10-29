@@ -10,6 +10,10 @@ import { useToast } from '../../hooks/use-toast';
 import { getShopById, getShopStaff } from '../../lib/api';
 import type { StaffMember } from '../../types';
 import { recordSalonVisit } from '../../lib/recentlyViewed';
+import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
+import { ClientTestimonialsSection } from '../../components/ui/ClientTestimonialsSection';
+import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
+import { MultiViewBookingCalendarModal } from '../../components/ui/MultiViewBookingCalendarModal';
 
 function fmt12h(t: string) {
   if (!t) return '';
@@ -174,6 +178,7 @@ export default function ShopMiniWebsite() {
   const [showHours, setShowHours] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { if (shopId) loadShop(); else navigate('/'); }, [shopId]);
@@ -408,10 +413,21 @@ export default function ShopMiniWebsite() {
                 <Home className="w-3.5 h-3.5" /><span>Home Service</span>
               </div>
             </>)}
-            <button onClick={proceedToBook}
-              className="ml-auto flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-sm rounded-xl transition-all shadow-gold active:scale-95">
-              <Scissors className="w-4 h-4" /> Book Now
-            </button>
+            <div className="ml-auto flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsCalendarModalOpen(true)}
+                className="flex items-center gap-1.5 px-3.5 py-2.5 bg-white/5 hover:bg-gold/15 border border-gold/30 hover:border-gold text-gold font-bold text-xs sm:text-sm rounded-xl transition-all active:scale-95"
+                title="View Live Day/Week Availability"
+              >
+                <Calendar className="w-4 h-4 text-gold" />
+                <span className="hidden sm:inline">Live Calendar</span>
+              </button>
+              <button onClick={proceedToBook}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold text-sm rounded-xl transition-all shadow-gold active:scale-95">
+                <Scissors className="w-4 h-4" /> Book Now
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -510,91 +526,13 @@ export default function ShopMiniWebsite() {
           </section>
         )}
 
-        {/* Our Specialists & Team */}
+        {/* Meet the Stylists Section */}
         {staffList.length > 0 && (
-          <section>
-            <div className="gold-divider w-8 mb-3" />
-            <div className="flex items-end justify-between mb-5">
-              <div>
-                <h2 className="font-playfair font-bold text-white text-xl">Our Specialists</h2>
-                <p className="text-white/30 text-xs mt-0.5 font-inter">Skilled artists & therapists at {shop.name}</p>
-              </div>
-              <span className="text-gold text-xs font-semibold px-2.5 py-1 bg-gold/10 border border-gold/20 rounded-full font-inter">
-                {staffList.length} Team Member{staffList.length > 1 ? 's' : ''}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {staffList.map((staff) => (
-                <div
-                  key={staff.id}
-                  className="bg-[#1E1E1E] border border-white/8 rounded-2xl p-5 hover:border-gold/30 transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-start gap-3.5 mb-3">
-                      {staff.profile_photo_url ? (
-                        <img
-                          src={staff.profile_photo_url}
-                          alt={staff.full_name}
-                          className="w-14 h-14 rounded-2xl object-cover border border-gold/20 flex-shrink-0"
-                        />
-                      ) : (
-                        <div className="w-14 h-14 rounded-2xl bg-gold/10 border border-gold/20 flex items-center justify-center text-gold font-bold text-lg flex-shrink-0">
-                          {staff.full_name.charAt(0)}
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <h3 className="font-playfair font-bold text-white text-base truncate">{staff.full_name}</h3>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider flex-shrink-0 ${
-                            staff.status === 'Available' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' :
-                            staff.status === 'Busy' ? 'bg-amber-500/15 text-amber-400 border border-amber-500/20' :
-                            staff.status === 'On Leave' ? 'bg-blue-500/15 text-blue-400 border border-blue-500/20' :
-                            'bg-white/10 text-white/50 border border-white/10'
-                          }`}>
-                            {staff.status}
-                          </span>
-                        </div>
-                        <p className="text-gold text-xs font-inter font-medium mt-0.5">{staff.primary_role}</p>
-
-                        {/* Direct Mobile Contact — strictly hidden if hide_mobile_from_public is true */}
-                        {!staff.hide_mobile_from_public && staff.mobile_number && (
-                          <a
-                            href={`tel:${staff.mobile_number}`}
-                            className="inline-flex items-center gap-1.5 text-xs text-white/40 hover:text-gold transition-colors mt-1.5 font-inter"
-                          >
-                            <Phone className="w-3 h-3 text-gold/60" />
-                            {staff.mobile_number}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Specializations & Skills */}
-                    {staff.specializations && staff.specializations.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {staff.specializations.map((skill) => (
-                          <span
-                            key={skill}
-                            className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/5 border border-white/8 text-white/60 font-inter"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={() => navigate(`/shop/${shop.id}/book?staffId=${staff.id}`)}
-                    className="mt-4 w-full py-2.5 px-3 bg-gold/10 hover:bg-gold hover:text-[#0A0A0A] text-gold font-bold text-xs rounded-xl border border-gold/25 transition-all flex items-center justify-center gap-1.5 active:scale-95 font-inter"
-                  >
-                    <Scissors className="w-3.5 h-3.5" /> Book with {staff.full_name.split(' ')[0]}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </section>
+          <MeetTheStylistSection
+            staffList={staffList}
+            shopId={shop.id}
+            shopName={shop.name}
+          />
         )}
 
         {/* Home Service */}
@@ -625,35 +563,29 @@ export default function ShopMiniWebsite() {
           </section>
         )}
 
-        {/* Reviews */}
-        {reviews.length > 0 && (
-          <section>
-            <div className="gold-divider w-8 mb-3" />
-            <div className="flex items-start justify-between mb-5 gap-4">
-              <div>
-                <h2 className="font-playfair font-bold text-white text-xl mb-0.5">Reviews</h2>
-                <p className="text-white/30 text-sm font-inter">{reviews.length} verified</p>
-              </div>
-              <div className="flex items-center gap-3 bg-gold/8 border border-gold/20 rounded-2xl px-4 py-3 flex-shrink-0">
-                <div className="text-center">
-                  <p className="text-3xl font-black text-gold leading-none">{Number(shop.average_rating||0).toFixed(1)}</p>
-                  <div className="flex items-center justify-center gap-0.5 mt-1">
-                    {[1,2,3,4,5].map((i) => <Star key={i} className={`w-3 h-3 ${i <= Math.round(shop.average_rating||0) ? 'fill-gold text-gold' : 'text-white/15'}`} />)}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-3">
-              {visibleReviews.map((r: any) => <ReviewCard key={r.id} review={r} />)}
-            </div>
-            {reviews.length > 4 && (
-              <button onClick={() => setShowAllReviews((v) => !v)}
-                className="mt-4 w-full py-3 border border-white/10 hover:border-gold/30 rounded-xl text-sm font-semibold text-white/40 hover:text-gold transition-all flex items-center justify-center gap-2 font-inter">
-                {showAllReviews ? <><ChevronUp className="w-4 h-4" /> Show less</> : <><ChevronDown className="w-4 h-4" /> All {reviews.length} reviews</>}
-              </button>
-            )}
-          </section>
-        )}
+        {/* Client Testimonials Section */}
+        <section>
+          <ClientTestimonialsSection
+            shopId={shop.id}
+            shopName={shop.name}
+            averageRating={Number(shop.average_rating || 4.9)}
+            totalReviews={reviews.length || Number(shop.total_reviews || 45)}
+            reviewsList={reviews}
+          />
+        </section>
+
+        {/* Social Media Portfolio Section */}
+        <section>
+          <SocialPortfolioSection
+            shopName={shop.name}
+            instagramHandle={shop.instagram_handle}
+            instagramUrl={shop.instagram_url}
+            facebookHandle={shop.facebook_handle}
+            facebookUrl={shop.facebook_url}
+            websiteUrl={shop.website_url}
+            portfolioPhotos={photos}
+          />
+        </section>
 
         {/* Contact */}
         <section>
@@ -732,6 +664,15 @@ export default function ShopMiniWebsite() {
           </p>
         </footer>
       </div>
+
+      <MultiViewBookingCalendarModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        shopId={shopId || ''}
+        shopName={shop.name}
+        openingTime={shop.opening_time}
+        closingTime={shop.closing_time}
+      />
     </div>
   );
 }

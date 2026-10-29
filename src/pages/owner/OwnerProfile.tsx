@@ -44,6 +44,9 @@ export default function OwnerProfile() {
   const [editHomeServiceAvailable, setEditHomeServiceAvailable] = useState(false);
   const [editHomeServiceCharge, setEditHomeServiceCharge] = useState('0');
   const [editServiceRadius, setEditServiceRadius] = useState('0');
+  const [editInstagramHandle, setEditInstagramHandle] = useState('');
+  const [editFacebookHandle, setEditFacebookHandle] = useState('');
+  const [editWebsiteUrl, setEditWebsiteUrl] = useState('');
 
   useEffect(() => {
     if (user?.id) {
@@ -96,6 +99,9 @@ export default function OwnerProfile() {
     setEditHomeServiceAvailable(shopData.home_service_available || false);
     setEditHomeServiceCharge(shopData.home_service_charge?.toString() || '0');
     setEditServiceRadius(shopData.service_radius_km?.toString() || '0');
+    setEditInstagramHandle(shopData.instagram_handle || '');
+    setEditFacebookHandle(shopData.facebook_handle || '');
+    setEditWebsiteUrl(shopData.website_url || '');
   }
 
   async function handleSave() {
@@ -119,6 +125,11 @@ export default function OwnerProfile() {
         home_service_available: editHomeServiceAvailable,
         home_service_charge: parseInt(editHomeServiceCharge) || 0,
         service_radius_km: parseInt(editServiceRadius) || 0,
+        instagram_handle: editInstagramHandle,
+        instagram_url: editInstagramHandle ? `https://instagram.com/${editInstagramHandle.replace('@', '')}` : '',
+        facebook_handle: editFacebookHandle,
+        facebook_url: editFacebookHandle ? `https://${editFacebookHandle.replace('https://', '')}` : '',
+        website_url: editWebsiteUrl,
       });
 
       toast({
@@ -956,6 +967,87 @@ export default function OwnerProfile() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Social Media Links Card */}
+      <Card className="p-6 border-gold/20">
+        <h3 className="font-semibold text-lg mb-2 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-gold" />
+          Social Media & Portfolio Links
+        </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Connect your Instagram and Facebook profiles so clients can explore your portfolio of latest work.
+        </p>
+
+        {isEditing ? (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="instagramHandle" className="text-xs font-bold uppercase tracking-wider">
+                Instagram Handle or Profile URL
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="instagramHandle"
+                  value={editInstagramHandle}
+                  onChange={(e) => setEditInstagramHandle(e.target.value)}
+                  placeholder="e.g. @royalbarberia.jpr or instagram.com/royalbarberia.jpr"
+                  className="pl-3"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="facebookHandle" className="text-xs font-bold uppercase tracking-wider">
+                Facebook Page Link
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="facebookHandle"
+                  value={editFacebookHandle}
+                  onChange={(e) => setEditFacebookHandle(e.target.value)}
+                  placeholder="e.g. facebook.com/royalbarberia"
+                  className="pl-3"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="websiteUrl" className="text-xs font-bold uppercase tracking-wider">
+                Official Website / Online Portfolio URL
+              </Label>
+              <div className="relative mt-1">
+                <Input
+                  id="websiteUrl"
+                  value={editWebsiteUrl}
+                  onChange={(e) => setEditWebsiteUrl(e.target.value)}
+                  placeholder="e.g. https://royalbarberia.in"
+                  className="pl-3"
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Instagram</p>
+              <p className="font-semibold text-sm text-foreground truncate mt-0.5">
+                {shop.instagram_handle || `@${shop.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'nexora.salon'}`}
+              </p>
+            </div>
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Facebook</p>
+              <p className="font-semibold text-sm text-foreground truncate mt-0.5">
+                {shop.facebook_handle || `facebook.com/${shop.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'nexora'}`}
+              </p>
+            </div>
+            <div className="p-3 bg-secondary/30 rounded-xl border border-border">
+              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Website</p>
+              <p className="font-semibold text-sm text-foreground truncate mt-0.5">
+                {shop.website_url || 'Nexora Official Suite'}
+              </p>
             </div>
           </div>
         )}

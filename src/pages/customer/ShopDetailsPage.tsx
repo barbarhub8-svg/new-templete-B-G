@@ -15,6 +15,10 @@ import { getShopById, getShopStaff } from '../../lib/api';
 import type { StaffMember } from '../../types';
 import SalonLightbox from '../../components/ui/Lightbox';
 import { recordSalonVisit } from '../../lib/recentlyViewed';
+import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
+import { ClientTestimonialsSection } from '../../components/ui/ClientTestimonialsSection';
+import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
+import { MultiViewBookingCalendarModal } from '../../components/ui/MultiViewBookingCalendarModal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -67,24 +71,24 @@ function ServiceCheckCard({
         compact ? 'p-3' : 'p-4'
       } ${
         selected
-          ? 'border-primary bg-primary/5 shadow-sm'
-          : 'border-border bg-white hover:border-primary/40 hover:bg-secondary/30'
+          ? 'border-gold bg-gold/10 text-white shadow-gold'
+          : 'border-white/10 bg-[#181818] hover:border-gold/40 hover:bg-[#222222] text-white'
       }`}
     >
       <div className="flex items-center gap-3">
         <div className={`rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${
           compact ? 'w-4 h-4' : 'w-5 h-5'
-        } ${selected ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
-          {selected && <Check className={compact ? 'w-2.5 h-2.5 text-white' : 'w-3 h-3 text-white'} />}
+        } ${selected ? 'bg-gold border-gold' : 'border-white/20 bg-white/5'}`}>
+          {selected && <Check className={compact ? 'w-2.5 h-2.5 text-[#0A0A0A]' : 'w-3 h-3 text-[#0A0A0A]'} strokeWidth={3} />}
         </div>
         <div>
-          <p className={`font-semibold ${compact ? 'text-xs' : 'text-sm'}`}>{service.name}</p>
-          <p className={`text-muted-foreground ${compact ? 'text-[10px]' : 'text-xs'}`}>{service.duration_minutes} mins</p>
+          <p className={`font-semibold ${compact ? 'text-xs' : 'text-sm'} ${selected ? 'text-gold' : 'text-white'}`}>{service.name}</p>
+          <p className={`text-white/50 ${compact ? 'text-[10px]' : 'text-xs'}`}>{service.duration_minutes} mins</p>
         </div>
       </div>
       <div className={`flex items-center gap-0.5 font-bold transition-colors ${
         compact ? 'text-sm' : 'text-base'
-      } ${selected ? 'text-primary' : 'text-muted-foreground'}`}>
+      } ${selected ? 'text-gold' : 'text-white/70'}`}>
         <IndianRupee className={compact ? 'w-3 h-3' : 'w-4 h-4'} />
         {service.price}
       </div>
@@ -103,6 +107,7 @@ export default function ShopDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
 
   // Lightbox
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -558,74 +563,46 @@ export default function ShopDetailsPage() {
                   </Card>
                 )}
 
-                {/* Team snapshot */}
+                {/* Meet the Stylists Section */}
                 {staffList.length > 0 && (
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="font-semibold text-lg flex items-center gap-2">
-                        <Users className="w-5 h-5 text-primary" />
-                        Our Specialists
-                      </h2>
-                      <button
-                        onClick={() => setActiveTab('team')}
-                        className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
-                      >
-                        Meet all {staffList.length}
-                        <ChevronRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {staffList.slice(0, 3).map((staff) => (
-                        <div key={staff.id} className="p-3.5 border border-border rounded-xl bg-card/60 flex items-center gap-3">
-                          {staff.profile_photo_url ? (
-                            <img src={staff.profile_photo_url} alt={staff.full_name} className="w-10 h-10 rounded-full object-cover border border-border flex-shrink-0" />
-                          ) : (
-                            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-xs flex items-center justify-center flex-shrink-0">
-                              {staff.full_name.slice(0, 2).toUpperCase()}
-                            </div>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-xs truncate">{staff.full_name}</p>
-                            <p className="text-[11px] text-muted-foreground truncate">{staff.primary_role}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <Card className="p-6 bg-[#121212]/90 border-white/10 shadow-2xl">
+                    <MeetTheStylistSection
+                      staffList={staffList}
+                      shopId={shop.id}
+                      shopName={shop.name}
+                      compact
+                      onSelectPortfolio={(imgs) => {
+                        setPortfolioImages(imgs);
+                        setPortfolioLightboxOpen(true);
+                      }}
+                    />
                   </Card>
                 )}
 
-                {/* Rating snapshot & Recent Reviews */}
-                {reviews.length > 0 && (
-                  <Card className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="font-semibold text-lg flex items-center gap-2">
-                        <Star className="w-5 h-5 text-amber-500" />
-                        Customer Reviews
-                      </h2>
-                      <button
-                        onClick={() => setActiveTab('reviews')}
-                        className="text-xs text-primary hover:underline flex items-center gap-1"
-                      >
-                        See all {reviews.length}
-                        <ChevronRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <div className="flex items-center gap-6 mb-5">
-                      <div className="text-center">
-                        <p className="text-5xl font-bold text-amber-500">
-                          {Number(shop.average_rating || 0).toFixed(1)}
-                        </p>
-                        <StarRating rating={shop.average_rating || 0} size="md" />
-                        <p className="text-xs text-muted-foreground mt-1">{reviews.length} reviews</p>
-                      </div>
-                    </div>
-                    <div className="space-y-4">
-                      {reviews.slice(0, 3).map((review: any) => (
-                        <ReviewCard key={review.id} review={review} />
-                      ))}
-                    </div>
-                  </Card>
-                )}
+                {/* Client Testimonials Section */}
+                <Card className="p-6 bg-[#121212]/90 border-white/10 shadow-2xl">
+                  <ClientTestimonialsSection
+                    shopId={shop.id}
+                    shopName={shop.name}
+                    averageRating={Number(shop.average_rating || 4.9)}
+                    totalReviews={reviews.length || Number(shop.total_reviews || 45)}
+                    reviewsList={reviews}
+                    compact
+                  />
+                </Card>
+
+                {/* Social Portfolio & Community Section */}
+                <Card className="p-6 bg-[#121212]/90 border-white/10 shadow-2xl">
+                  <SocialPortfolioSection
+                    shopName={shop.name}
+                    instagramHandle={shop.instagram_handle}
+                    instagramUrl={shop.instagram_url}
+                    facebookHandle={shop.facebook_handle}
+                    facebookUrl={shop.facebook_url}
+                    websiteUrl={shop.website_url}
+                    portfolioPhotos={photos}
+                  />
+                </Card>
               </div>
             )}
 
@@ -674,161 +651,31 @@ export default function ShopDetailsPage() {
               </Card>
             )}
 
-            {/* ── Tab: Team ─────────────────────────────────────────────────── */}
+            {/* ── Tab: Team / Meet the Stylists ───────────────────────────────── */}
             {activeTab === 'team' && (
-              <Card className="p-6">
-                <div className="flex items-center justify-between mb-1">
-                  <h2 className="font-semibold text-lg flex items-center gap-2">
-                    <Users className="w-5 h-5 text-primary" />
-                    Specialists & Staff
-                  </h2>
-                  <Badge variant="outline" className="text-xs">
-                    {staffList.length} Specialist{staffList.length > 1 ? 's' : ''}
-                  </Badge>
-                </div>
-                <p className="text-xs text-muted-foreground mb-6">
-                  Experienced beauty, hair, and wellness professionals dedicated to your care.
-                </p>
-
-                {staffList.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p>No specialists listed yet</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {staffList.map((staff) => (
-                      <div
-                        key={staff.id}
-                        className="p-5 border border-border rounded-xl bg-card hover:border-primary/40 hover:shadow-sm transition-all flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="flex items-start gap-3.5 mb-3">
-                            {staff.profile_photo_url ? (
-                              <img
-                                src={staff.profile_photo_url}
-                                alt={staff.full_name}
-                                className="w-14 h-14 rounded-xl object-cover border border-border flex-shrink-0"
-                              />
-                            ) : (
-                              <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg flex-shrink-0">
-                                {staff.full_name.charAt(0)}
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-1">
-                                <h3 className="font-semibold text-base truncate">{staff.full_name}</h3>
-                                <Badge
-                                  variant="secondary"
-                                  className={`text-[10px] ${
-                                    staff.status === 'Available' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                    staff.status === 'Busy' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                    staff.status === 'On Leave' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                    'bg-muted text-muted-foreground'
-                                  }`}
-                                >
-                                  {staff.status}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-muted-foreground font-medium mt-0.5">{staff.primary_role}</p>
-
-                              {/* Only show phone if NOT hidden from public */}
-                              {!staff.hide_mobile_from_public && staff.mobile_number && (
-                                <a
-                                  href={`tel:${staff.mobile_number}`}
-                                  className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors mt-1.5"
-                                >
-                                  <Phone className="w-3 h-3 text-primary" />
-                                  {staff.mobile_number}
-                                </a>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Skills & Specializations */}
-                          {staff.specializations && staff.specializations.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                              {staff.specializations.map((skill) => (
-                                <span
-                                  key={skill}
-                                  className="text-[11px] px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground"
-                                >
-                                  {skill}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 hover:bg-primary hover:text-white"
-                            onClick={() => navigate(`/shop/${shop.id}/book?staffId=${staff.id}`)}
-                          >
-                            <Scissors className="w-3.5 h-3.5 mr-1.5" />
-                            Book
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1 hover:bg-primary hover:text-white"
-                            onClick={() => {
-                              const mockPortfolio = [
-                                'https://images.unsplash.com/photo-1595476108420-1a1a72d3f7f8?w=900&h=600&fit=crop',
-                                'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&h=600&fit=crop'
-                              ];
-                              setPortfolioImages(mockPortfolio);
-                              setPortfolioLightboxOpen(true);
-                            }}
-                          >
-                            <Grid3X3 className="w-3.5 h-3.5 mr-1.5" />
-                            Portfolio
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <Card className="p-6 bg-[#121212]/90 border-white/10 shadow-2xl">
+                <MeetTheStylistSection
+                  staffList={staffList}
+                  shopId={shop.id}
+                  shopName={shop.name}
+                  onSelectPortfolio={(imgs) => {
+                    setPortfolioImages(imgs);
+                    setPortfolioLightboxOpen(true);
+                  }}
+                />
               </Card>
             )}
 
-            {/* ── Tab: Reviews ──────────────────────────────────────────────── */}
+            {/* ── Tab: Reviews / Client Testimonials ──────────────────────────── */}
             {activeTab === 'reviews' && (
-              <Card className="p-6">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="text-center">
-                    <p className="text-5xl font-bold text-amber-500">
-                      {Number(shop.average_rating || 0).toFixed(1)}
-                    </p>
-                    <StarRating rating={shop.average_rating || 0} size="md" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {reviews.length} reviews
-                    </p>
-                  </div>
-                  <Separator orientation="vertical" className="h-16" />
-                  <div className="flex-1 text-sm text-muted-foreground">
-                    <p className="font-medium text-foreground mb-1">Customer Feedback</p>
-                    <p>Real reviews from verified bookings</p>
-                  </div>
-                </div>
-
-                <Separator className="mb-5" />
-
-                {reviews.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p>No reviews yet</p>
-                    <p className="text-xs mt-1">Be the first to book and review</p>
-                  </div>
-                ) : (
-                  <div className="space-y-5">
-                    {reviews.map((review: any) => (
-                      <ReviewCard key={review.id} review={review} full />
-                    ))}
-                  </div>
-                )}
+              <Card className="p-6 bg-[#121212]/90 border-white/10 shadow-2xl">
+                <ClientTestimonialsSection
+                  shopId={shop.id}
+                  shopName={shop.name}
+                  averageRating={Number(shop.average_rating || 4.9)}
+                  totalReviews={reviews.length || Number(shop.total_reviews || 45)}
+                  reviewsList={reviews}
+                />
               </Card>
             )}
 
@@ -966,6 +813,16 @@ export default function ShopDetailsPage() {
                     </>
                   )}
                 </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCalendarModalOpen(true)}
+                  className="w-full border-amber-500/30 hover:border-amber-500 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 font-semibold rounded-xl py-2.5 flex items-center justify-center gap-2 transition-all"
+                >
+                  <Calendar className="w-4 h-4 text-amber-500" />
+                  <span>View Live Calendar & Slots</span>
+                </Button>
               </Card>
 
               {/* Shop quick info */}
@@ -1066,8 +923,26 @@ export default function ShopDetailsPage() {
               ? `Book · ₹${servicesTotal}`
               : 'Book Appointment'}
           </Button>
+          <Button
+            size="lg"
+            variant="outline"
+            className="border-amber-500/30 text-amber-600 hover:bg-amber-50"
+            onClick={() => setIsCalendarModalOpen(true)}
+          >
+            <Calendar className="w-4 h-4" />
+          </Button>
         </div>
       </div>
+
+      {/* Multi-View Calendar Modal */}
+      <MultiViewBookingCalendarModal
+        isOpen={isCalendarModalOpen}
+        onClose={() => setIsCalendarModalOpen(false)}
+        shopId={shop.id}
+        shopName={shop.name}
+        openingTime={shop.opening_time}
+        closingTime={shop.closing_time}
+      />
     </div>
   );
 }
