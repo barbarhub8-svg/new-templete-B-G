@@ -7,6 +7,8 @@ export default defineConfig({
   server: {
     host: "0.0.0.0",
     port: 3000,
+    // Allow the Arena preview proxy host in development.
+    allowedHosts: true,
   },
   plugins: [
     react(),
