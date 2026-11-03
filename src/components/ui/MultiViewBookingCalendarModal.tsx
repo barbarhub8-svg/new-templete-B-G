@@ -13,6 +13,9 @@ interface MultiViewBookingCalendarModalProps {
   shopName: string;
   openingTime?: string;
   closingTime?: string;
+  /** Optional interceptor for read-only template previews; keeps the real
+   *  booking route untouched for published salon websites. */
+  onConfirm?: (date: string, time: string) => void;
 }
 
 type CalendarViewMode = 'day' | 'week';
@@ -63,6 +66,7 @@ export function MultiViewBookingCalendarModal({
   onClose,
   shopId,
   shopName,
+  onConfirm,
 }: MultiViewBookingCalendarModalProps) {
   const navigate = useNavigate();
 
@@ -119,6 +123,11 @@ export function MultiViewBookingCalendarModal({
 
   const handleConfirmBooking = () => {
     if (!selectedSlot) return;
+    if (onConfirm) {
+      onConfirm(selectedIsoDate, selectedSlot);
+      onClose();
+      return;
+    }
     const timeParam = `&time=${encodeURIComponent(selectedSlot)}`;
     navigate(`/shop/${shopId}/book?date=${selectedIsoDate}${timeParam}`);
     onClose();

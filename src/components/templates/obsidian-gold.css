@@ -1,0 +1,369 @@
+/* =====================================================
+   OBSIDIAN GOLD LUXURY — scoped design system
+   All selectors are prefixed with .og-* so the other
+   templates and the surrounding app are untouched.
+   ===================================================== */
+
+.og-shell {
+  --og-bg: #0a0a0a;
+  --og-card: #141414;
+  --og-surface: #1c1c1c;
+  --og-gold: #d4af37;
+  --og-gold-light: #f5d77a;
+  --og-text: #ffffff;
+  --og-muted: #a1a1aa;
+  --og-border: rgba(212, 175, 55, 0.2);
+
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  background-color: var(--og-bg);
+  color: var(--og-text);
+  font-family: 'Inter', system-ui, sans-serif;
+  /* No overflow container here: sticky navigation and the fixed booking /
+     lightbox overlays must stay relative to the viewport. Horizontal
+     overflow is prevented by the layout utilities and the app's global
+     overflow-x rule. */
+  -webkit-font-smoothing: antialiased;
+}
+
+.og-shell *,
+.og-shell *::before,
+.og-shell *::after {
+  box-sizing: border-box;
+}
+
+.og-shell h1,
+.og-shell h2,
+.og-shell h3,
+.og-shell h4,
+.og-shell h5,
+.og-shell h6,
+.og-display {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+/* Form controls do not inherit fonts by default. Everything else inherits
+   Inter from .og-shell, so Tailwind's font-playfair utility still wins. */
+.og-shell button,
+.og-shell input,
+.og-shell select,
+.og-shell textarea {
+  font-family: inherit;
+}
+
+.og-shell ::selection {
+  background: rgba(212, 175, 55, 0.35);
+  color: #fff;
+}
+
+/* ── Typography helpers ─────────────────────────────── */
+.og-eyebrow {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--og-gold);
+}
+
+.og-gold-text {
+  background: linear-gradient(110deg, #d4af37 0%, #f5d77a 45%, #d4af37 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: var(--og-gold);
+}
+
+.og-muted { color: var(--og-muted); }
+
+.og-hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.65), transparent);
+}
+
+.og-hairline-solid {
+  background: linear-gradient(90deg, rgba(212, 175, 55, 0.05), rgba(212, 175, 55, 0.4), rgba(212, 175, 55, 0.05));
+}
+
+/* ── Buttons ────────────────────────────────────────── */
+.og-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 46px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.og-btn:focus-visible,
+.og-shell a:focus-visible,
+.og-shell button:focus-visible,
+.og-shell input:focus-visible,
+.og-shell select:focus-visible {
+  outline: 2px solid var(--og-gold-light);
+  outline-offset: 3px;
+}
+
+.og-btn-primary {
+  background: linear-gradient(120deg, #d4af37 0%, #f5d77a 50%, #d4af37 100%);
+  background-size: 200% 100%;
+  color: #0a0a0a;
+  border: 1px solid rgba(245, 215, 122, 0.6);
+  box-shadow: 0 10px 34px rgba(212, 175, 55, 0.18);
+}
+
+.og-btn-primary:hover {
+  background-position: 100% 0;
+  transform: translateY(-2px);
+  box-shadow: 0 16px 44px rgba(212, 175, 55, 0.32);
+}
+
+.og-btn-primary:active { transform: translateY(0) scale(0.985); }
+
+.og-btn-ghost {
+  background: rgba(212, 175, 55, 0.03);
+  color: var(--og-gold-light);
+  border: 1px solid rgba(212, 175, 55, 0.42);
+}
+
+.og-btn-ghost:hover {
+  background: rgba(212, 175, 55, 0.12);
+  border-color: var(--og-gold);
+  transform: translateY(-2px);
+}
+
+.og-btn-quiet {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.og-btn-quiet:hover {
+  color: #fff;
+  border-color: rgba(212, 175, 55, 0.5);
+  background: rgba(212, 175, 55, 0.06);
+}
+
+/* ── Cards & surfaces ───────────────────────────────── */
+.og-card {
+  position: relative;
+  background: var(--og-card);
+  border: 1px solid var(--og-border);
+  transition: border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
+}
+
+.og-card-hover:hover {
+  transform: translateY(-5px);
+  border-color: rgba(212, 175, 55, 0.55);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.55), 0 0 34px rgba(212, 175, 55, 0.07);
+  background: #171717;
+}
+
+.og-surface { background: var(--og-surface); }
+
+.og-frame {
+  position: relative;
+  border: 1px solid var(--og-border);
+}
+
+.og-frame::before,
+.og-frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.og-frame::before {
+  top: -1px;
+  left: -1px;
+  border-top: 1px solid var(--og-gold);
+  border-left: 1px solid var(--og-gold);
+}
+
+.og-frame::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 1px solid var(--og-gold);
+  border-right: 1px solid var(--og-gold);
+}
+
+.og-glow {
+  position: absolute;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+  filter: blur(18px);
+}
+
+/* ── Imagery ────────────────────────────────────────── */
+.og-hero-overlay {
+  background:
+    linear-gradient(90deg, rgba(10, 10, 10, 0.94) 0%, rgba(10, 10, 10, 0.7) 38%, rgba(10, 10, 10, 0.3) 70%, rgba(10, 10, 10, 0.55) 100%),
+    linear-gradient(0deg, #0a0a0a 0%, rgba(10, 10, 10, 0.45) 35%, rgba(10, 10, 10, 0.25) 100%);
+}
+
+.og-vignette {
+  background: radial-gradient(ellipse at 50% 45%, transparent 30%, rgba(10, 10, 10, 0.65) 100%);
+}
+
+.og-image-zoom img {
+  transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.og-image-zoom:hover img { transform: scale(1.065); }
+
+.og-kenburns {
+  animation: og-kenburns 26s ease-in-out infinite alternate;
+}
+
+.og-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  pointer-events: none;
+}
+
+/* ── Form controls ──────────────────────────────────── */
+.og-input,
+.og-select {
+  width: 100%;
+  background: #0e0e0e;
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  color: #fff;
+  border-radius: 2px;
+  padding: 0.8rem 1rem;
+  font-size: 0.82rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.og-input:focus,
+.og-select:focus {
+  outline: none;
+  border-color: var(--og-gold);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+}
+
+.og-select option { background: #141414; color: #fff; }
+
+/* ── Before / after range ───────────────────────────── */
+.og-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.og-range::-webkit-slider-runnable-track { height: 2px; background: transparent; }
+.og-range::-moz-range-track { height: 2px; background: transparent; }
+
+.og-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #f5d77a);
+  border: 3px solid #0a0a0a;
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.7), 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.og-range::-moz-range-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #d4af37, #f5d77a);
+  border: 3px solid #0a0a0a;
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.7), 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Scrollbars ─────────────────────────────────────── */
+.og-scroll::-webkit-scrollbar { height: 5px; width: 5px; }
+.og-scroll::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.04); }
+.og-scroll::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.55); border-radius: 4px; }
+
+/* ── Motion ─────────────────────────────────────────── */
+@keyframes og-fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes og-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes og-kenburns {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+@keyframes og-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+
+@keyframes og-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes og-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@keyframes og-scroll-cue {
+  0% { transform: translateY(-6px); opacity: 0; }
+  40% { opacity: 1; }
+  100% { transform: translateY(14px); opacity: 0; }
+}
+
+.og-reveal {
+  opacity: 0;
+  animation: og-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.og-fade { animation: og-fade-in 0.9s ease-out both; }
+.og-float { animation: og-float 6s ease-in-out infinite; }
+.og-pulse { animation: og-pulse 2.4s ease-in-out infinite; }
+
+.og-shimmer-line {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(245, 215, 122, 0.55), transparent);
+  animation: og-shimmer 4.5s ease-in-out infinite;
+}
+
+.og-scroll-cue {
+  width: 1px;
+  height: 44px;
+  background: linear-gradient(180deg, var(--og-gold), transparent);
+  animation: og-scroll-cue 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .og-shell *,
+  .og-shell *::before,
+  .og-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .og-reveal { opacity: 1; }
+}

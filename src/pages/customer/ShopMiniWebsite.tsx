@@ -15,6 +15,7 @@ import { ClientTestimonialsSection } from '../../components/ui/ClientTestimonial
 import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
 import { ReviewsSection } from '../../components/ui/ReviewsSection';
 import { MultiViewBookingCalendarModal } from '../../components/ui/MultiViewBookingCalendarModal';
+import { ObsidianGoldLuxury, OBSIDIAN_GOLD_TEMPLATE_ID } from '../../components/templates/ObsidianGoldLuxury';
 
 function fmt12h(t: string) {
   if (!t) return '';
@@ -252,6 +253,18 @@ export default function ShopMiniWebsite() {
     );
   }
   if (!shop) return null;
+
+  // Template 01 — Obsidian Gold Luxury. All other templates keep their
+  // existing design below, completely untouched.
+  if ((shop.template_id ?? shop.templateId) === OBSIDIAN_GOLD_TEMPLATE_ID) {
+    return (
+      <ObsidianGoldLuxury
+        shop={shop}
+        staffList={staffList}
+        onReviewAdded={loadShop}
+      />
+    );
+  }
 
   const openNow = isOpenNow(shop.opening_time, shop.closing_time, shop.weekly_off);
   const mapsAddress = encodeURIComponent(`${shop.address}, ${shop.city}`);
