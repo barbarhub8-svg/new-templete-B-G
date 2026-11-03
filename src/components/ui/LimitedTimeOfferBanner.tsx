@@ -4,22 +4,22 @@ import { useNavigate } from 'react-router-dom';
 
 const OFFERS = [
   {
-    code: 'FESTIVE20',
-    title: 'Festive Luxury Offer',
-    description: 'Flat 20% OFF on all Jaipur Palace & Premier Salon Bookings',
+    code: 'DIWALI20',
+    title: 'Diwali Darbar Offer',
+    description: 'Flat 20% OFF on all premier salon & royal wellness bookings this festive season',
     tag: '20% OFF',
   },
   {
-    code: 'ROYALSPA',
-    title: 'Royal Grooming Combo',
-    description: 'Complimentary Hair Spa with any Skin Fade & Beard Trim package',
-    tag: 'FREE SPA',
+    code: 'SHAADI30',
+    title: 'Shaadi Season Privilege',
+    description: '30% OFF the Pre-Wedding Royal Groom Package — look regal on your big day',
+    tag: '30% OFF',
   },
   {
-    code: 'BRIDAL15',
-    title: 'Festive Wedding Special',
-    description: '15% Cashback on Bridal & Groom pre-wedding makeover packages',
-    tag: '15% CASHBACK',
+    code: 'FESTIVEGLOW',
+    title: 'Festive Glow Pairing',
+    description: 'Complimentary ubtan glow ritual with any designer cut & champi therapy booking',
+    tag: 'FREE GLOW',
   },
 ];
 

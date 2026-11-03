@@ -343,7 +343,11 @@ export function ObsidianGoldLuxury({
 
   const currentPair = data.beforeAfter[beforeAfterIndex] || data.beforeAfter[0];
   const nameWords = data.name.split(/\s+/).filter(Boolean);
-  const nameAccent = nameWords.length > 1 ? nameWords.pop() : '';
+  let nameAccent = nameWords.length > 1 ? nameWords.pop() || '' : '';
+  // Keep short trailing fragments together as the accent (e.g. "& Co.", "& Spa").
+  if (nameAccent && nameAccent.length <= 3 && nameWords.length > 1) {
+    nameAccent = `${nameWords.pop()} ${nameAccent}`;
+  }
   const nameLead = nameWords.join(' ');
 
   return (

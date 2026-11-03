@@ -82,7 +82,7 @@ export function ClientTestimonialsSection({
       comment: newComment.trim(),
       created_at: new Date().toISOString(),
       verified: true,
-      service_name: selectedService || 'Styling & Grooming',
+      service_name: selectedService || 'Signature Grooming Ritual',
       likes: 1,
     };
 

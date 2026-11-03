@@ -67,19 +67,19 @@ export function RecommendedForYou() {
           // Provide realistic starter history for personalized cold-start
           bookingHistory = [
             {
-              serviceName: 'Modern Skin Fade & Razor Detailing',
+              serviceName: 'Designer Indo-Western Hair Styling & Cut',
               category: 'Hair Cut',
               date: '3 weeks ago',
-              price: 450,
-              salonName: 'The Royal Barberia',
+              price: 1800,
+              salonName: 'The Royal Turban Barber & Co.',
               serviceType: 'in-shop',
             },
             {
-              serviceName: 'Traditional Straight Razor Shave',
+              serviceName: 'Royal Shahi Beard Sculpt & Hot Towel Treatment',
               category: 'Beard Styling',
               date: '3 weeks ago',
-              price: 350,
-              salonName: 'The Royal Barberia',
+              price: 950,
+              salonName: 'The Royal Turban Barber & Co.',
               serviceType: 'in-shop',
             },
           ];
@@ -95,7 +95,7 @@ export function RecommendedForYou() {
           bookingHistory,
           preferences: prefs,
           serviceType: setting,
-          city: 'Mumbai',
+          city: 'Jaipur',
           customerEmail,
         }),
       });

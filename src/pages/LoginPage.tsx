@@ -145,7 +145,7 @@ export default function LoginPage() {
               <p className="text-white/50 text-xs leading-relaxed italic font-inter">
                 "Nexora doubled my bookings in the first month. The dashboard is beautiful and incredibly easy to use."
               </p>
-              <p className="text-gold/50 text-[10px] mt-1.5 font-semibold font-inter">Rajesh K. · Elite Cuts, Mumbai</p>
+              <p className="text-gold/50 text-[10px] mt-1.5 font-semibold font-inter">Rajesh K. · The Royal Turban Barber & Co., Jaipur</p>
             </div>
           </div>
         </div>

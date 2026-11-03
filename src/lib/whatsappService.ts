@@ -19,7 +19,7 @@ export function generateWhatsAppReminderUrl(reminder: AppointmentReminder): stri
   const formattedTime = formatTime12h(reminder.appointmentTime);
   const staffPart = reminder.staffName ? ` with ${reminder.staffName}` : '';
   
-  const message = `Hello ${reminder.customerName}! 🌸 This is a friendly reminder from *${reminder.shopName}* regarding your upcoming appointment for *${reminder.serviceName}*${staffPart} today at *${formattedTime}* (in ~2 hours). We look forward to seeing you! Please let us know if you need to reschedule.`;
+  const message = `Namaste ${reminder.customerName} ji! 🙏 A warm reminder from *${reminder.shopName}* — your appointment for *${reminder.serviceName}*${staffPart} is today at *${formattedTime}* (in ~2 hours). Your chair and a cup of chai await. We look forward to welcoming you! Please let us know if you need to reschedule.`;
   
   const encodedMessage = encodeURIComponent(message);
   return `https://wa.me/${phone ? (phone.startsWith('91') ? phone : '91' + phone) : ''}?text=${encodedMessage}`;

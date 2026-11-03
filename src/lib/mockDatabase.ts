@@ -5,6 +5,8 @@
 import { mockShops, mockBookings, mockWallet } from './mockData';
 
 const STORAGE_KEY_PREFIX = 'nexora_mock_';
+// Bump when seed content changes so cached demo data is refreshed.
+const SEED_VERSION = 'india-luxury-v1';
 
 function getStorage<T>(key: string, defaultValue: T): T {
   try {
@@ -102,57 +104,57 @@ function initializeSeedData() {
   // Also include dummy-1 through dummy-6 for direct compatibility with HomePage / SalonListingPage cards
   const dummyList = [
     {
-      id: 'dummy-1', name: 'The Royal Barberia',
-      tagline: 'Luxury grooming with modern fades and classic precision styling.',
+      id: 'dummy-1', name: 'The Royal Turban Barber & Co.',
+      tagline: 'Padharo mhare des — royal Rajputana grooming with modern Indo-Western artistry.',
       photos: [
         'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=900&h=600&fit=crop&q=90',
         'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=900&h=600&fit=crop&q=90',
       ],
-      rating: 4.9, totalReviews: 312, city: 'Mumbai', address: 'Bhilwara, Rajasthan',
-      homeService: false, opening_time: '09:00', closing_time: '21:00', weekly_off: 'Monday',
-      home_service_charge: 0,
+      rating: 4.9, totalReviews: 312, city: 'Jaipur', address: '12, Heritage Arcade, C-Scheme, Jaipur',
+      homeService: true, opening_time: '09:00', closing_time: '21:00', weekly_off: 'Monday',
+      home_service_charge: 250,
     },
     {
-      id: 'dummy-2', name: 'Classic Cuts Studio',
-      tagline: 'Professional grooming experts in a premium ambience.',
+      id: 'dummy-2', name: 'Bespoke Bombay Grooming Co.',
+      tagline: 'Sharp lines, subtle luxury — Bandra’s most discreet grooming studio.',
       photos: [
         'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=900&h=600&fit=crop&q=90',
         'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=900&h=600&fit=crop&q=90',
       ],
-      rating: 4.8, totalReviews: 210, city: 'Mumbai', address: 'Azad Nagar, Mumbai',
-      homeService: true, opening_time: '10:00', closing_time: '21:00', weekly_off: 'Tuesday',
-      home_service_charge: 100,
+      rating: 4.8, totalReviews: 210, city: 'Mumbai', address: '45, Linking Road, Bandra West, Mumbai',
+      homeService: true, opening_time: '10:00', closing_time: '22:00', weekly_off: 'Tuesday',
+      home_service_charge: 300,
     },
     {
-      id: 'dummy-3', name: 'Urban Fade Lounge',
-      tagline: 'Trendy hairstyles, skin fades, and luxury salon experience.',
+      id: 'dummy-3', name: 'Maharaja & Mane Luxury Atelier',
+      tagline: 'Artisanal warmth and bronze glow for Delhi’s style connoisseurs.',
       photos: [
         'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=900&h=600&fit=crop&q=90',
         'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=900&h=600&fit=crop&q=90',
       ],
-      rating: 5.0, totalReviews: 180, city: 'Delhi', address: 'Connaught Place, Delhi',
-      homeService: false, opening_time: '09:30', closing_time: '22:00', weekly_off: 'Wednesday',
+      rating: 5.0, totalReviews: 180, city: 'Delhi', address: '21, Middle Lane, Khan Market, New Delhi',
+      homeService: false, opening_time: '09:30', closing_time: '21:30', weekly_off: 'Monday',
       home_service_charge: 0,
     },
     {
-      id: 'dummy-4', name: 'Serenity Spa & Salon',
-      tagline: 'Complete beauty solutions — hair, skin, and relaxation.',
+      id: 'dummy-4', name: 'Ananda Ayurveda Spa & Salon',
+      tagline: 'Ayurvedic serenity — champi, ubtan glow and holistic wellness.',
       photos: ['https://images.unsplash.com/photo-1560066984-138dadb4c035?w=900&h=600&fit=crop&q=90'],
       rating: 4.7, totalReviews: 95, city: 'Bangalore', address: 'Koramangala, Bangalore',
       homeService: true, opening_time: '09:00', closing_time: '20:00', weekly_off: 'Sunday',
-      home_service_charge: 150,
+      home_service_charge: 280,
     },
     {
-      id: 'dummy-5', name: 'Prestige Barbers',
-      tagline: 'Old-school precision meets modern style in every cut.',
+      id: 'dummy-5', name: "The Nizam's Grooming Reserve",
+      tagline: 'Nawabi precision and royal hospitality in the heart of Jubilee Hills.',
       photos: ['https://images.unsplash.com/photo-1492526234853-2f83bfdb9c3a?w=900&h=600&fit=crop&q=90'],
-      rating: 4.6, totalReviews: 143, city: 'Pune', address: 'FC Road, Pune',
+      rating: 4.6, totalReviews: 143, city: 'Hyderabad', address: 'Road No. 36, Jubilee Hills, Hyderabad',
       homeService: false, opening_time: '08:30', closing_time: '20:00', weekly_off: 'Thursday',
       home_service_charge: 0,
     },
     {
-      id: 'dummy-6', name: 'Glow Studio',
-      tagline: 'Bridal and special occasion hair and makeup specialists.',
+      id: 'dummy-6', name: 'Kanchan Bridal Glow Studio',
+      tagline: 'Bridal ubtan rituals and special-occasion hair & makeup artistry.',
       photos: ['https://images.unsplash.com/photo-1562322140-8baeececf3df?w=900&h=600&fit=crop&q=90'],
       rating: 4.8, totalReviews: 72, city: 'Chennai', address: 'Anna Nagar, Chennai',
       homeService: true, opening_time: '09:00', closing_time: '19:00', weekly_off: 'Monday',
@@ -187,11 +189,11 @@ function initializeSeedData() {
     });
 
     const standardServices = [
-      { name: 'Hair Cut & Styling', price: 350, duration: 40 },
-      { name: 'Beard Trim & Shape', price: 180, duration: 25 },
-      { name: 'Royal Hot Towel Shave', price: 150, duration: 20 },
-      { name: 'Detox Facial', price: 650, duration: 45 },
-      { name: 'Relaxing Head Massage', price: 250, duration: 25 },
+      { name: 'Designer Indo-Western Hair Styling & Cut', price: 1800, duration: 60 },
+      { name: 'Royal Shahi Beard Sculpt & Hot Towel Treatment', price: 950, duration: 40 },
+      { name: 'Ayurvedic Scalp Detox & Champi Therapy', price: 1600, duration: 50 },
+      { name: 'Ubtan & Gold Leaf Bridal/Groom Facial Glow Ritual', price: 3500, duration: 75 },
+      { name: 'Pre-Wedding Royal Groom Package', price: 6500, duration: 150 },
     ];
 
     standardServices.forEach((svc, idx) => {
@@ -224,7 +226,7 @@ function initializeSeedData() {
       booking_id: `b-${d.id}-1`,
       customer_name: 'Rahul Khanna',
       rating: 5,
-      comment: 'Top quality service and wonderful ambiance!',
+      comment: 'Impeccable service and warm Indian hospitality — a truly royal experience!',
       created_at: new Date().toISOString(),
     });
   });
@@ -310,17 +312,17 @@ function initializeSeedData() {
     {
       id: 'staff-1-1',
       shop_id: '1',
-      full_name: 'Sameer Khan',
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop',
-      primary_role: 'Senior Stylist',
-      app_access_role: 'Service Provider (Assigned)',
+      full_name: 'Aarav Sharma',
+      avatar_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop',
+      primary_role: 'Master Stylist',
+      app_access_role: 'Manager (Full Access)',
       mobile_number: '+91 98765 12340',
       hide_mobile_from_public: false,
       commission_percentage: 25,
       status: 'Available',
       is_active: true,
       assigned_service_ids: ['s1', 's2', 's3', 's4', 's5'],
-      specializations: ['Hair Coloring', 'Keratin Treatment', 'Beard Sculpting'],
+      specializations: ['Indo-Western Cutting', 'Editorial Styling', 'Groom Makeovers'],
       schedule: standardSchedule,
       created_at: new Date(Date.now() - 60 * 86400000).toISOString(),
       updated_at: new Date().toISOString(),
@@ -328,17 +330,17 @@ function initializeSeedData() {
     {
       id: 'staff-1-2',
       shop_id: '1',
-      full_name: 'Priya Sharma',
-      avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop',
-      primary_role: 'Makeup Artist',
-      app_access_role: 'Manager (Full Access)',
+      full_name: 'Kabir Mehra',
+      avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop',
+      primary_role: 'Beard Sculptor',
+      app_access_role: 'Service Provider (Assigned)',
       mobile_number: '+91 98765 23450',
-      hide_mobile_from_public: true,
-      commission_percentage: 30,
+      hide_mobile_from_public: false,
+      commission_percentage: 22,
       status: 'Available',
       is_active: true,
-      assigned_service_ids: ['s4', 's5'],
-      specializations: ['Bridal Makeup', 'Facial Treatments'],
+      assigned_service_ids: ['s2', 's5'],
+      specializations: ['Shahi Beard Sculpting', 'Straight Razor', 'Hot Towel Rituals'],
       schedule: standardSchedule,
       created_at: new Date(Date.now() - 45 * 86400000).toISOString(),
       updated_at: new Date().toISOString(),
@@ -346,17 +348,17 @@ function initializeSeedData() {
     {
       id: 'staff-1-3',
       shop_id: '1',
-      full_name: 'Aarav Patel',
-      avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
-      primary_role: 'Hair Dresser',
+      full_name: 'Ananya Roy',
+      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop',
+      primary_role: 'Senior Spa Therapist',
       app_access_role: 'Service Provider (Assigned)',
       mobile_number: '+91 98765 34560',
-      hide_mobile_from_public: false,
+      hide_mobile_from_public: true,
       commission_percentage: 20,
       status: 'Busy',
       is_active: true,
-      assigned_service_ids: ['s1', 's2', 's3'],
-      specializations: ['Balayage', 'Hair Coloring'],
+      assigned_service_ids: ['s3', 's4'],
+      specializations: ['Ayurvedic Champi', 'Ubtan Glow Rituals', 'Scalp Detox'],
       schedule: standardSchedule,
       created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
       updated_at: new Date().toISOString(),
@@ -364,17 +366,17 @@ function initializeSeedData() {
     {
       id: 'staff-1-4',
       shop_id: '1',
-      full_name: 'Rohan Joshi',
-      avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&h=300&fit=crop',
-      primary_role: 'Spa Therapist',
+      full_name: 'Rohan Verma',
+      avatar_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop',
+      primary_role: 'Creative Director',
       app_access_role: 'Service Provider (Assigned)',
       mobile_number: '+91 98765 45670',
       hide_mobile_from_public: true,
-      commission_percentage: 20,
-      status: 'On Leave',
+      commission_percentage: 28,
+      status: 'Available',
       is_active: true,
-      assigned_service_ids: ['s4', 's5'],
-      specializations: ['Deep Tissue Massage', 'Facial Treatments'],
+      assigned_service_ids: ['s1', 's4', 's5'],
+      specializations: ['Groom Transformations', 'Colour Artistry', 'Shaadi Styling'],
       schedule: standardSchedule,
       created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
       updated_at: new Date().toISOString(),
@@ -382,7 +384,7 @@ function initializeSeedData() {
     {
       id: 'staff-1-5',
       shop_id: '1',
-      full_name: 'Ananya Sen',
+      full_name: 'Meera Iyer',
       avatar_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=300&h=300&fit=crop',
       primary_role: 'Receptionist',
       app_access_role: 'Receptionist (Frontdesk)',
@@ -392,7 +394,7 @@ function initializeSeedData() {
       status: 'Available',
       is_active: true,
       assigned_service_ids: [],
-      specializations: ['Threading & Waxing'],
+      specializations: ['Guest Relations', 'Booking Concierge'],
       schedule: standardSchedule,
       created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
       updated_at: new Date().toISOString(),
@@ -403,43 +405,43 @@ function initializeSeedData() {
   const dummyStaffMap = [
     {
       shopId: 'dummy-1',
-      name: 'Vikram Malhotra',
-      role: 'Senior Stylist',
+      name: 'Aarav Sharma',
+      role: 'Master Stylist',
       photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=300&h=300&fit=crop',
-      phone: '+91 98201 11223',
+      phone: '+91 98290 11223',
       hide: false,
       comm: 25,
-      skills: ['Beard Sculpting', 'Hair Coloring'],
+      skills: ['Indo-Western Cutting', 'Groom Makeovers'],
     },
     {
       shopId: 'dummy-1',
-      name: 'Kavita Rao',
-      role: 'Makeup Artist',
-      photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=300&fit=crop',
-      phone: '+91 98201 22334',
+      name: 'Ananya Roy',
+      role: 'Senior Spa Therapist',
+      photo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop',
+      phone: '+91 98290 22334',
       hide: true,
-      comm: 28,
-      skills: ['Bridal Makeup', 'Facial Treatments'],
+      comm: 20,
+      skills: ['Ayurvedic Champi', 'Ubtan Glow Rituals'],
     },
     {
       shopId: 'dummy-2',
-      name: 'Rahul Deshmukh',
-      role: 'Junior Stylist',
-      photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop',
-      phone: '+91 98201 33445',
+      name: 'Vivaan Kapoor',
+      role: 'Master Barber',
+      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
+      phone: '+91 98200 33445',
       hide: false,
-      comm: 20,
-      skills: ['Hair Coloring', 'Balayage'],
+      comm: 22,
+      skills: ['Indo-Western Cuts', 'Skin Fades'],
     },
     {
       shopId: 'dummy-3',
-      name: 'Deepak Roy',
-      role: 'Hair Dresser',
-      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
-      phone: '+91 98201 44556',
+      name: 'Rohan Verma',
+      role: 'Creative Director',
+      photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=300&h=300&fit=crop',
+      phone: '+91 98110 44556',
       hide: false,
-      comm: 22,
-      skills: ['Beard Sculpting', 'Hair Coloring'],
+      comm: 28,
+      skills: ['Editorial Styling', 'Groom Transformations'],
     },
   ];
 
@@ -489,8 +491,15 @@ class MockDatabase {
 
   private loadState() {
     const seed = initializeSeedData();
+    const needsReseed = getStorage<string>('seed_version', '') !== SEED_VERSION;
     for (const [table, defaultRows] of Object.entries(seed)) {
-      this.tables[table] = getStorage(table, defaultRows);
+      this.tables[table] = needsReseed ? defaultRows : getStorage(table, defaultRows);
+    }
+    if (needsReseed) {
+      for (const [table, rows] of Object.entries(this.tables)) {
+        setStorage(table, rows);
+      }
+      setStorage('seed_version', SEED_VERSION);
     }
     this.currentUser = getStorage('current_user', {
       id: 'owner1',

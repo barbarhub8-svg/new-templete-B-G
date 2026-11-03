@@ -22,38 +22,38 @@ import { recordSalonVisit } from '@/lib/recentlyViewed';
 
 const BASE_DEMO_SHOPS = [
   {
-    id: 'dummy-1', name: 'The Royal Barberia',
-    tagline: 'Luxury grooming with modern fades and classic precision styling.',
+    id: 'dummy-1', name: 'The Royal Turban Barber & Co.',
+    tagline: 'Padharo mhare des — royal Rajputana grooming with modern Indo-Western artistry.',
     photo: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=900&h=600&fit=crop&q=90',
-    rating: 4.9, totalReviews: 312, city: 'Mumbai', address: 'Bhilwara, Rajasthan',
-    tags: ['In-Shop', 'Premium', 'Beard Styling'], homeService: false,
+    rating: 4.9, totalReviews: 312, city: 'Jaipur', address: '12, Heritage Arcade, C-Scheme, Jaipur',
+    tags: ['Heritage Atelier', 'Premium', 'Shahi Beard Sculpt'], homeService: true,
     opening_time: '09:00', closing_time: '21:00', weekly_off: 'Monday', total_bookings: 1450, isDemo: true,
   },
   {
-    id: 'dummy-2', name: 'Classic Cuts Studio',
-    tagline: 'Professional grooming experts in a premium ambience.',
+    id: 'dummy-2', name: 'Bespoke Bombay Grooming Co.',
+    tagline: 'Sharp lines, subtle luxury — Bandra’s most discreet grooming studio.',
     photo: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=900&h=600&fit=crop&q=90',
-    rating: 4.8, totalReviews: 210, city: 'Mumbai', address: 'Azad Nagar, Mumbai',
-    tags: ['Home Service', 'Hair Spa', 'Premium'], homeService: true,
-    opening_time: '10:00', closing_time: '21:00', weekly_off: 'Tuesday', total_bookings: 980, isDemo: true,
+    rating: 4.8, totalReviews: 210, city: 'Mumbai', address: '45, Linking Road, Bandra West, Mumbai',
+    tags: ['Home Service', 'Champi Therapy', 'Premium'], homeService: true,
+    opening_time: '10:00', closing_time: '22:00', weekly_off: 'Tuesday', total_bookings: 980, isDemo: true,
   },
   {
-    id: 'dummy-3', name: 'Urban Fade Lounge',
-    tagline: 'Trendy hairstyles, skin fades, and luxury salon experience.',
+    id: 'dummy-3', name: 'Maharaja & Mane Luxury Atelier',
+    tagline: 'Artisanal warmth and bronze glow for Delhi’s style connoisseurs.',
     photo: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=900&h=600&fit=crop&q=90',
-    rating: 5.0, totalReviews: 180, city: 'Delhi', address: 'Connaught Place, Delhi',
-    tags: ['In-Shop', 'Trending Styles', 'Premium'], homeService: false,
-    opening_time: '09:30', closing_time: '22:00', weekly_off: 'Wednesday', total_bookings: 820, isDemo: true,
+    rating: 5.0, totalReviews: 180, city: 'Delhi', address: '21, Middle Lane, Khan Market, New Delhi',
+    tags: ['In-Shop', 'Bridal Glow', 'Premium'], homeService: false,
+    opening_time: '09:30', closing_time: '21:30', weekly_off: 'Monday', total_bookings: 820, isDemo: true,
   },
 ];
 
 const DUMMY_SHOPS = [...JAIPUR_PREMIER_SHOPS, ...FEATURED_NAIL_STUDIOS, ...BASE_DEMO_SHOPS];
 
 const TESTIMONIALS = [
-  { name: 'Arjun Mehta', city: 'Mumbai', rating: 5, text: 'Absolutely love Nexora! Booked a haircut in under a minute and the salon was top-notch. Will never go back to calling in advance.', avatar: 'A' },
-  { name: 'Priya Sharma', city: 'Delhi', rating: 5, text: 'The home service option is a game changer. The barber arrived on time and the result was salon-quality — right at my doorstep!', avatar: 'P' },
-  { name: 'Rahul Verma', city: 'Bangalore', rating: 5, text: 'I referred 3 friends and we all earned rewards. Best loyalty program I have ever used for grooming services.', avatar: 'R' },
-  { name: 'Sneha Patel', city: 'Pune', rating: 5, text: 'Found a premium salon near my office through Nexora. The real-time slot availability makes planning so much easier.', avatar: 'S' },
+  { name: 'Arjun Mehta', city: 'Mumbai', rating: 5, text: 'Absolutely love Nexora! Booked my Indo-Western cut in under a minute and the studio was top-notch. Will never go back to calling in advance.', avatar: 'A' },
+  { name: 'Priya Sharma', city: 'New Delhi', rating: 5, text: 'The home service option is a game changer. The therapist arrived on time for my ubtan glow ritual — salon-quality care at my doorstep!', avatar: 'P' },
+  { name: 'Rahul Verma', city: 'Jaipur', rating: 5, text: 'I referred 3 friends before wedding season and we all earned rewards. Best loyalty program for premium grooming in India.', avatar: 'R' },
+  { name: 'Sneha Patel', city: 'Hyderabad', rating: 5, text: 'Found a royal grooming lounge in Jubilee Hills through Nexora. The real-time slot availability makes planning so much easier.', avatar: 'S' },
 ];
 
 const SERVICE_CATEGORIES = [
@@ -438,7 +438,7 @@ export default function HomePage() {
         <div className="relative z-10 w-full px-4 sm:px-8 lg:px-12 py-6 sm:py-8 flex flex-col justify-center">
           <div className="inline-flex items-center gap-2 border border-gold/40 bg-black/40 backdrop-blur-md rounded-full px-3 py-1 mb-3 shadow-lg self-start">
             <Sparkles className="w-3 h-3 text-gold" />
-            <span className="text-gold text-[11px] font-semibold tracking-[0.2em] uppercase">Premium Salon Experience</span>
+            <span className="text-gold text-[11px] font-semibold tracking-[0.2em] uppercase">India's Premium Salon Experience</span>
           </div>
 
           <div className="mb-3 sm:mb-4 max-w-3xl">
@@ -447,7 +447,7 @@ export default function HomePage() {
               Where Style <span className="text-gold-gradient italic">Meets Luxury</span>
             </h1>
             <p className="text-white/90 text-sm sm:text-base font-inter font-light leading-relaxed max-w-xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]">
-              Book appointments at premier salons and barbershops. Curated for discerning clients.
+              Book India's elite salons, royal barbershops & Ayurvedic wellness sanctuaries. Curated for discerning guests.
             </p>
           </div>
 
