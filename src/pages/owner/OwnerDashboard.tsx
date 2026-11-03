@@ -13,6 +13,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { getShopByOwnerId, getShopBookings, getWalletBalance, acceptBooking, rejectBooking } from '../../lib/api';
 import { useToast } from '../../hooks/use-toast';
+import { ClientWaitlist } from '../../components/owner/ClientWaitlist';
+import { UpcomingBookingsList } from '../../components/owner/UpcomingBookingsList';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -225,6 +227,9 @@ export default function OwnerDashboard() {
   const pendingList = allBookings.filter((b) => b.status === 'pending').slice(0, 5);
   const recentList = allBookings.slice(0, 8);
   const today = new Date().toISOString().split('T')[0];
+  const upcomingBookings = allBookings.filter(b => 
+    b.status === 'confirmed' && (b.final_date || b.requested_date) >= today
+  );
   const todayList = allBookings.filter((b) =>
     (b.final_date || b.requested_date) === today
   );
@@ -533,7 +538,9 @@ export default function OwnerDashboard() {
       )}
 
       {/* ══ TODAY & RECENT ══════════════════════════════════════════════════ */}
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6">
+        <ClientWaitlist shopId={shop.id} />
+        <UpcomingBookingsList bookings={upcomingBookings} />
 
         {/* Today's Schedule */}
         <div className="nexora-card rounded-2xl p-6">

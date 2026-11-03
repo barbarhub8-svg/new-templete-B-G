@@ -24,6 +24,7 @@ export default function OwnerServices() {
   const [formName, setFormName] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formDuration, setFormDuration] = useState('');
+  const [formCategory, setFormCategory] = useState('');
 
   useEffect(() => {
     if (user?.id) {
@@ -75,6 +76,7 @@ export default function OwnerServices() {
     setFormName('');
     setFormPrice('');
     setFormDuration('');
+    setFormCategory('');
     setIsAdding(false);
     setEditingId(null);
   }
@@ -83,6 +85,7 @@ export default function OwnerServices() {
     setFormName(service.name);
     setFormPrice(service.price.toString());
     setFormDuration(service.duration_minutes.toString());
+    setFormCategory(service.category || '');
     setEditingId(service.id);
     setIsAdding(false);
   }
@@ -120,6 +123,7 @@ export default function OwnerServices() {
           name: formName,
           price,
           duration_minutes: duration,
+          category: formCategory,
         });
         
         toast({
@@ -133,6 +137,7 @@ export default function OwnerServices() {
           name: formName,
           price,
           duration_minutes: duration,
+          category: formCategory,
         });
         
         toast({
@@ -248,7 +253,7 @@ export default function OwnerServices() {
             {editingId ? 'Edit Service' : 'Add New Service'}
           </h3>
           
-          <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div className="grid md:grid-cols-4 gap-4 mb-4">
             <div>
               <Label htmlFor="serviceName">Service Name *</Label>
               <Input
@@ -258,6 +263,17 @@ export default function OwnerServices() {
                 placeholder="e.g., Hair Cut"
                 className="mt-1"
                 required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Input
+                id="category"
+                value={formCategory}
+                onChange={(e) => setFormCategory(e.target.value)}
+                placeholder="e.g., Hair"
+                className="mt-1"
               />
             </div>
             

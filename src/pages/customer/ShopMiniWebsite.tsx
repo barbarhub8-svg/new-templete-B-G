@@ -13,6 +13,7 @@ import { recordSalonVisit } from '../../lib/recentlyViewed';
 import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
 import { ClientTestimonialsSection } from '../../components/ui/ClientTestimonialsSection';
 import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
+import { ReviewsSection } from '../../components/ui/ReviewsSection';
 import { MultiViewBookingCalendarModal } from '../../components/ui/MultiViewBookingCalendarModal';
 
 function fmt12h(t: string) {
@@ -216,6 +217,12 @@ export default function ShopMiniWebsite() {
 
   const videoMedia = (shop?.shop_media ?? []).find((m: any) => m.media_type === 'video');
   const activeServices = (shop?.services ?? []).filter((s: any) => s.is_active !== false);
+  const categories = Array.from(new Set(activeServices.map((s: any) => s.category || 'General')));
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const filteredServices = selectedCategory 
+    ? activeServices.filter((s: any) => (s.category || 'General') === selectedCategory)
+    : activeServices;
+
   const reviews: any[] = shop?.reviews ?? [];
   const totalPrice = selectedServices.reduce((s, svc) => s + svc.price, 0);
   const totalDuration = selectedServices.reduce((s, svc) => s + svc.duration_minutes, 0);
@@ -474,17 +481,29 @@ export default function ShopMiniWebsite() {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-2 bg-gold/5 border border-gold/15 rounded-xl px-4 py-3 mb-4">
-            <Info className="w-4 h-4 text-gold/50 flex-shrink-0" />
-            <p className="text-xs text-white/40 font-inter">Tap to select services, then proceed to booking.</p>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <button 
+              onClick={() => setSelectedCategory(null)}
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${!selectedCategory ? 'bg-gold text-[#0A0A0A]' : 'bg-white/10 text-white/60'}`}>
+              All
+            </button>
+            {categories.map(cat => (
+              <button 
+                key={cat} 
+                onClick={() => setSelectedCategory(cat as string)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedCategory === cat ? 'bg-gold text-[#0A0A0A]' : 'bg-white/10 text-white/60'}`}>
+                {cat}
+              </button>
+            ))}
           </div>
-          {activeServices.length === 0 ? (
+
+          {filteredServices.length === 0 ? (
             <div className="flex flex-col items-center py-16 text-white/15">
               <Scissors className="w-12 h-12 mb-3" /><p className="text-sm">No services listed</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {activeServices.map((svc: any) => (
+              {filteredServices.map((svc: any) => (
                 <ServiceItem key={svc.id} service={svc} selected={!!selectedServices.find((s) => s.id === svc.id)} onToggle={() => toggleService(svc)} />
               ))}
             </div>
@@ -571,6 +590,15 @@ export default function ShopMiniWebsite() {
             averageRating={Number(shop.average_rating || 4.9)}
             totalReviews={reviews.length || Number(shop.total_reviews || 45)}
             reviewsList={reviews}
+          />
+        </section>
+
+        {/* Reviews Section */}
+        <section>
+          <ReviewsSection
+            shopId={shop.id}
+            reviews={reviews}
+            onReviewAdded={loadShop}
           />
         </section>
 

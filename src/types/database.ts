@@ -83,6 +83,7 @@ export interface Service {
   name: string;
   price: number;
   duration_minutes: number;
+  category?: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -166,6 +167,7 @@ export interface StaffMember {
   assigned_service_ids: string[];
   specializations: string[];
   schedule: StaffScheduleDay[];
+  portfolio_photos?: string[];
   created_at: string;
   updated_at: string;
 }

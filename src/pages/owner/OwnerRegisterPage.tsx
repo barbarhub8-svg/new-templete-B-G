@@ -279,6 +279,7 @@ export default function OwnerRegisterPage() {
         await supabase.from('user_profiles').update({ username: ownerName, phone: ownerPhone || null, avatar_url: avatarUrl || null }).eq('id', authUser.id);
       } catch (e) { console.warn('Profile update failed:', e); }
 
+      const selectedTemplate = localStorage.getItem('nexora_selected_template') || 'obsidian-gold';
       let shopData: any = null;
       const fallbackShopId = `shop_${Date.now()}`;
       const shopPayload = {
@@ -296,6 +297,7 @@ export default function OwnerRegisterPage() {
         home_service_charge: homeServiceEnabled ? parseInt(homeServiceCharge, 10) || 0 : 0,
         service_radius_km: homeServiceEnabled ? parseInt(serviceRadius, 10) || 0 : 0,
         contact_phone: ownerPhone || null,
+        template_id: selectedTemplate,
         status: 'pending',
         created_at: new Date().toISOString(),
       };
@@ -317,6 +319,7 @@ export default function OwnerRegisterPage() {
             home_service_charge: homeServiceEnabled ? parseInt(homeServiceCharge, 10) || 0 : 0,
             service_radius_km: homeServiceEnabled ? parseInt(serviceRadius, 10) || 0 : 0,
             contact_phone: ownerPhone || null,
+            template_id: selectedTemplate,
             status: 'pending',
           })
           .select()

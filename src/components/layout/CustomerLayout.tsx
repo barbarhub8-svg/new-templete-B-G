@@ -1,14 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Menu, X, Gift } from 'lucide-react';
-import { useState } from 'react';
+import { BookOpen, Menu, X, Gift, Sparkles } from 'lucide-react';
+import { TemplateShowcaseModal, SalonTemplate } from '../ui/TemplateShowcaseModal';
+import { TemplateLivePreviewModal } from '../ui/TemplateLivePreviewModal';
 
 export default function CustomerLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [livePreviewTemplate, setLivePreviewTemplate] = useState<SalonTemplate | null>(null);
 
   const isHome = location.pathname === '/';
+
+  function handleSelectAndRegister(templateId: string) {
+    localStorage.setItem('nexora_selected_template', templateId);
+    setShowTemplatesModal(false);
+    setLivePreviewTemplate(null);
+    navigate('/owner/register');
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#0A0A0A]">
@@ -61,6 +71,18 @@ export default function CustomerLayout() {
                   {label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => navigate('/templates')}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ml-1 ${
+                  location.pathname === '/templates'
+                    ? 'text-gold bg-gold/10 border border-gold/40'
+                    : 'text-gold border border-gold/30 hover:bg-gold/10'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Templates</span>
+              </button>
             </nav>
 
             {/* Right Actions */}
@@ -127,6 +149,14 @@ export default function CustomerLayout() {
                   {label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => { navigate('/templates'); setMenuOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-lg text-sm font-semibold text-gold hover:bg-gold/10 transition-all flex items-center gap-2"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Explore Templates</span>
+              </button>
             </div>
           )}
         </div>
@@ -158,6 +188,25 @@ export default function CustomerLayout() {
           </div>
         </div>
       </footer>
+
+      {/* Template Showcase Modal */}
+      <TemplateShowcaseModal
+        isOpen={showTemplatesModal}
+        onClose={() => setShowTemplatesModal(false)}
+        onLivePreview={(tmpl) => {
+          setShowTemplatesModal(false);
+          setLivePreviewTemplate(tmpl);
+        }}
+        onSelectAndRegister={handleSelectAndRegister}
+      />
+
+      {/* Live Preview Modal */}
+      <TemplateLivePreviewModal
+        isOpen={Boolean(livePreviewTemplate)}
+        template={livePreviewTemplate}
+        onClose={() => setLivePreviewTemplate(null)}
+        onSelectAndRegister={handleSelectAndRegister}
+      />
     </div>
   );
 }

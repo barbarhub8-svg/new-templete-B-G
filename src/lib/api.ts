@@ -617,25 +617,7 @@ export async function getShopReviews(shopId: string) {
   return data;
 }
 
-/**
- * Add review for a booking
- */
-export async function addReview(reviewData: {
-  shop_id: string;
-  booking_id: string;
-  customer_name: string;
-  rating: number;
-  comment?: string;
-}) {
-  const { data, error } = await supabase
-    .from('reviews')
-    .insert(reviewData)
-    .select()
-    .single();
 
-  if (error) throw error;
-  return data;
-}
 
 // =====================================================
 // WALLET API
@@ -954,5 +936,25 @@ export async function getAvailableStaffForBooking(
     console.warn('getAvailableStaffForBooking error:', err);
     return [];
   }
+}
+
+/**
+ * Add a review for a shop
+ */
+export async function addReview(reviewData: {
+  shop_id: string;
+  booking_id: string;
+  customer_name: string;
+  rating: number;
+  comment: string;
+}) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .insert(reviewData)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 

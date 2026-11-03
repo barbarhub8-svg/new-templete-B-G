@@ -12,6 +12,7 @@ import BookingStatusPage from './pages/customer/BookingStatusPage';
 import MyBookingsPage from './pages/customer/MyBookingsPage';
 import MyRewardsPage from './pages/customer/MyRewardsPage';
 import SalonListingPage from './pages/customer/SalonListingPage';
+import TemplatesGalleryPage from './pages/customer/TemplatesGalleryPage';
 import TermsPage from './pages/customer/TermsPage';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import OwnerBookings from './pages/owner/OwnerBookings';
@@ -45,6 +46,7 @@ function App() {
             <Route path="booking/:id" element={<BookingStatusPage />} />
             <Route path="rewards" element={<MyRewardsPage />} />
             <Route path="salons" element={<SalonListingPage />} />
+            <Route path="templates" element={<TemplatesGalleryPage />} />
             <Route path="terms" element={<TermsPage />} />
           </Route>
 

@@ -126,11 +126,38 @@ export default function StaffModal({
   const [specializations, setSpecializations] = useState<string[]>([]);
   const [newSkillInput, setNewSkillInput] = useState('');
   const [skillSearchQuery, setSkillSearchQuery] = useState('');
+  const [portfolioPhotos, setPortfolioPhotos] = useState<string[]>([]);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Portfolio Files Upload Handler
+  async function handlePortfolioFilesUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    if (portfolioPhotos.length + files.length > 8) {
+      setErrors((prev) => ({ ...prev, gallery: 'Maximum 8 portfolio photos allowed' }));
+      return;
+    }
+    try {
+      setUploadingGallery(true);
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
+        const url = await uploadStaffPhoto(shopId, file);
+        if (url) uploadedUrls.push(url);
+      }
+      setPortfolioPhotos((prev) => [...prev, ...uploadedUrls]);
+      setErrors((prev) => ({ ...prev, gallery: '' }));
+    } catch (err: any) {
+      setErrors((prev) => ({ ...prev, gallery: err.message || 'Failed to upload portfolio photos' }));
+    } finally {
+      setUploadingGallery(false);
+    }
+  }
 
   // Populate on edit or reset on create
   useEffect(() => {
@@ -155,6 +182,7 @@ export default function StaffModal({
       setStatus(editingStaff.status || 'Available');
       setAssignedServiceIds(editingStaff.assigned_service_ids || []);
       setSpecializations(editingStaff.specializations || []);
+      setPortfolioPhotos(editingStaff.portfolio_photos || []);
 
       if (editingStaff.schedule && editingStaff.schedule.length > 0) {
         setSchedule(editingStaff.schedule);
@@ -175,6 +203,7 @@ export default function StaffModal({
       setAssignedServiceIds(salonServices.map((s) => s.id));
       setSchedule(getDefaultSchedule());
       setSpecializations(['Hair Coloring', 'Beard Sculpting']);
+      setPortfolioPhotos([]);
     }
     setErrors({});
   }, [editingStaff, isOpen, salonServices]);
@@ -323,6 +352,7 @@ export default function StaffModal({
         assigned_service_ids: assignedServiceIds,
         specializations,
         schedule,
+        portfolio_photos: portfolioPhotos,
       };
 
       await onSave(staffPayload);
@@ -852,6 +882,61 @@ export default function StaffModal({
                 );
               })}
             </div>
+          </div>
+
+          {/* ════ SECTION G: Gallery / Past Work Showcase ════ */}
+          <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <Camera className="w-3.5 h-3.5 text-blue-600" />
+              <span>G. Portfolio Gallery / Past Work Showcase ({portfolioPhotos.length}/8)</span>
+            </div>
+            <p className="text-xs text-slate-500">
+              Upload photos of past work, haircuts, or styles by this staff member. These display on the public staff profile and mini-website.
+            </p>
+
+            {portfolioPhotos.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {portfolioPhotos.map((url, index) => (
+                  <div key={index} className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white">
+                    <img src={url} alt={`Portfolio ${index + 1}`} className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setPortfolioPhotos((prev) => prev.filter((_, i) => i !== index))}
+                      className="absolute top-2 right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {portfolioPhotos.length < 8 && (
+              <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-300 rounded-2xl cursor-pointer hover:border-blue-500 hover:bg-blue-50/20 transition-all bg-white">
+                {uploadingGallery ? (
+                  <div className="flex items-center gap-2 text-xs text-blue-600 font-semibold">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Uploading portfolio photos...
+                  </div>
+                ) : (
+                  <>
+                    <Camera className="w-6 h-6 text-slate-400 mb-1" />
+                    <span className="text-xs font-semibold text-slate-700">Upload Past Work Photos</span>
+                    <span className="text-[11px] text-slate-400 mt-0.5">PNG, JPG up to 2MB each</span>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePortfolioFilesUpload}
+                  className="hidden"
+                  disabled={uploadingGallery}
+                />
+              </label>
+            )}
+            {errors.gallery && (
+              <p className="text-xs text-red-500 font-medium">{errors.gallery}</p>
+            )}
           </div>
 
           {/* ── Modal Footer (Sticky) ─────────────────────────────────── */}
