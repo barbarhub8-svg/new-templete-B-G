@@ -16,6 +16,8 @@ interface MultiViewBookingCalendarModalProps {
   /** Optional interceptor for read-only template previews; keeps the real
    *  booking route untouched for published salon websites. */
   onConfirm?: (date: string, time: string) => void;
+  /** Marks the sample availability as demo data (template previews only). */
+  demoMode?: boolean;
 }
 
 type CalendarViewMode = 'day' | 'week';
@@ -67,6 +69,7 @@ export function MultiViewBookingCalendarModal({
   shopId,
   shopName,
   onConfirm,
+  demoMode = false,
 }: MultiViewBookingCalendarModalProps) {
   const navigate = useNavigate();
 
@@ -154,12 +157,17 @@ export function MultiViewBookingCalendarModal({
                   Live Booking Calendar
                 </h3>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold/15 text-gold border border-gold/30 font-bold uppercase tracking-wider font-inter">
-                  Real-Time
+                  {demoMode ? 'Demo Data' : 'Real-Time'}
                 </span>
               </div>
               <p className="text-white/40 text-xs font-inter mt-0.5">
                 Explore availability for <span className="text-gold font-semibold">{shopName}</span>
               </p>
+              {demoMode && (
+                <p className="text-[10px] text-amber-300/80 font-inter mt-1">
+                  Sample slots for this template preview — not confirmed salon availability.
+                </p>
+              )}
             </div>
           </div>
 

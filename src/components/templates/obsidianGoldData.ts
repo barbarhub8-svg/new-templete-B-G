@@ -8,18 +8,25 @@
 // hides itself when the corresponding real data is absent.
 // =====================================================
 
+export const OTHER_CATEGORY_KEY = '__other__';
+export const OTHER_CATEGORY_LABEL = 'Other Services';
+
 export interface OGService {
   id: string;
   name: string;
   description: string;
   price: number;
   duration: number;
+  /** Display label of the category as stored in the database ('' when unset). */
   category: string;
+  /** Stable key used for category filtering. */
+  categoryKey: string;
   image: string;
   raw: any;
 }
 
 export interface OGCategory {
+  key: string;
   name: string;
   count: number;
 }
@@ -31,7 +38,34 @@ export interface OGStaff {
   photo: string;
   specializations: string[];
   experience: string;
+  /** Only staff-owned work, never salon-wide gallery photos. */
+  portfolioPhotos: string[];
+  /** Public phone number, only when the salon has not hidden it. */
+  phone: string;
+  whatsappUrl: string;
+  assignedServiceIds: string[];
   raw: any;
+}
+
+export interface OGVideo {
+  id: string;
+  url: string;
+  kind: 'file' | 'youtube' | 'instagram' | 'facebook' | 'other';
+  /** External watch URL for social platforms, empty for uploaded files. */
+  watchUrl: string;
+  /** Safe embed URL when one can be derived, otherwise empty. */
+  embedUrl: string;
+  thumbnail: string;
+  title: string;
+}
+
+export interface OGOwner {
+  name: string;
+  photo: string;
+  designation: string;
+  experience: string;
+  specialties: string[];
+  bio: string;
 }
 
 export interface OGReview {
@@ -53,6 +87,12 @@ export interface OGOffer {
   code: string;
   validUntil: string;
   limited: boolean;
+  /** Service names / ids the offer applies to, exactly as published. */
+  services: string[];
+  /** Only values explicitly stored on the offer record. */
+  price: number;
+  originalPrice: number;
+  discountLabel: string;
 }
 
 export interface OGPackage {
@@ -61,7 +101,10 @@ export interface OGPackage {
   description: string;
   price: number;
   period: string;
+  validity: string;
+  sessions: number;
   benefits: string[];
+  includedServices: string[];
 }
 
 export interface OGBeforeAfter {
@@ -99,11 +142,14 @@ export interface OGSiteData {
   tagline: string;
   introduction: string;
   logoUrl: string;
+  ownerPhoto: string;
+  owner: OGOwner;
   heroPhoto: string;
   aboutPhoto: string;
   bookingPhoto: string;
   photos: string[];
   video: string;
+  videos: OGVideo[];
   services: OGService[];
   categories: OGCategory[];
   staff: OGStaff[];
@@ -241,6 +287,88 @@ function isBeforeAfterRecord(item: any): boolean {
   return /\bbefore\b/.test(text) && /\bafter\b/.test(text);
 }
 
+// ── Video helpers ───────────────────────────────────────────────────────
+export function youtubeId(url: string): string {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i
+  );
+  return match ? match[1] : '';
+}
+
+/**
+ * Classifies a media URL so social links are never loaded as native video
+ * files and never rendered as blank/broken <video> elements.
+ */
+export function classifyVideo(raw: any): OGVideo | null {
+  const url = extractImage(typeof raw === 'string' ? raw : raw?.media_url ?? raw?.url ?? raw?.video_url ?? raw);
+  if (!url) return null;
+  const id = asString(raw?.id) || `video-${url}`;
+  const title = typeof raw === 'object' ? firstString(raw, ['caption', 'title', 'name', 'description']) : '';
+  const thumbnail =
+    typeof raw === 'object'
+      ? firstString(raw, ['thumbnail_url', 'thumbnail', 'poster_url', 'poster', 'preview_image'])
+      : '';
+
+  const ytId = youtubeId(url);
+  if (ytId) {
+    return {
+      id,
+      url,
+      kind: 'youtube',
+      watchUrl: `https://www.youtube.com/watch?v=${ytId}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${ytId}`,
+      thumbnail: thumbnail || `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
+      title,
+    };
+  }
+  if (/instagram\.com|instagr\.am/i.test(url)) {
+    return { id, url, kind: 'instagram', watchUrl: url, embedUrl: '', thumbnail, title };
+  }
+  if (/facebook\.com|fb\.watch|fb\.com/i.test(url)) {
+    return { id, url, kind: 'facebook', watchUrl: url, embedUrl: '', thumbnail, title };
+  }
+  if (/vimeo\.com/i.test(url)) {
+    const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
+    return {
+      id,
+      url,
+      kind: 'other',
+      watchUrl: url,
+      embedUrl: vimeoId ? `https://player.vimeo.com/video/${vimeoId}` : '',
+      thumbnail,
+      title,
+    };
+  }
+  if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?|#|$)/i.test(url) || /\/video\//i.test(url) || /^data:video\//i.test(url)) {
+    return { id, url, kind: 'file', watchUrl: '', embedUrl: '', thumbnail, title };
+  }
+  if (/^https?:\/\//i.test(url)) {
+    // Unknown external link — offered as an external "watch" action only.
+    return { id, url, kind: 'other', watchUrl: url, embedUrl: '', thumbnail, title };
+  }
+  return { id, url, kind: 'file', watchUrl: '', embedUrl: '', thumbnail, title };
+}
+
+// ── Service filtering (shared by the public website + tests) ────────────
+export function serviceMatchesQuery(service: OGService, query: string): boolean {
+  const term = query.trim().toLowerCase();
+  if (!term) return true;
+  return [service.name, service.category, service.description]
+    .filter(Boolean)
+    .some((value) => value.toLowerCase().includes(term));
+}
+
+export function serviceMatchesCategory(service: OGService, categoryKey: string): boolean {
+  if (!categoryKey || categoryKey === 'all') return true;
+  return service.categoryKey === categoryKey;
+}
+
+export function filterServices(services: OGService[], categoryKey = 'all', query = ''): OGService[] {
+  return services.filter(
+    (service) => serviceMatchesCategory(service, categoryKey) && serviceMatchesQuery(service, query)
+  );
+}
+
 export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteData {
   const record = shop && typeof shop === 'object' ? shop : {};
   const shopId = asString(record.id ?? record.shop_id) || 'preview';
@@ -274,9 +402,14 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
     .filter((item) => Boolean(item.url))
     .sort((a, b) => a.order - b.order);
 
-  const logoMedia = media.find((m) => ['logo', 'owner_photo', 'brand_logo'].includes(m.type));
+  const logoMedia = media.find((m) => ['logo', 'brand_logo'].includes(m.type));
   const logoUrl =
-    firstString(record, ['logo_url', 'logo', 'brand_logo_url', 'brand_logo']) || logoMedia?.url || '';
+    firstString(record, ['logo_url', 'brand_logo_url', 'brand_logo', 'logo']) || logoMedia?.url || '';
+  const ownerPhotoMedia = media.find((m) => ['owner_photo', 'owner', 'owner_image', 'owner_portrait'].includes(m.type));
+  const ownerPhoto =
+    firstString(record, ['owner_photo_url', 'owner_image_url', 'owner_photo', 'owner_image', 'owner_avatar_url']) ||
+    ownerPhotoMedia?.url ||
+    '';
 
   const beforeAfterMedia = media.filter((m) => isBeforeAfterRecord(m.raw) || isBeforeAfterRecord(m));
   const seenPhotos = new Set<string>();
@@ -285,15 +418,35 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
       (m) =>
         (m.type === 'photo' || m.type === 'portfolio' || m.type === 'gallery' || m.type === '') &&
         !beforeAfterMedia.includes(m) &&
-        m.url !== logoUrl
+        m.url !== logoUrl &&
+        m.url !== ownerPhoto
     )
     .filter((m) => {
+      const ownerMediaUrl = asString(m.raw?.media_url ?? m.url);
+      if (ownerMediaUrl && ownerMediaUrl === ownerPhoto) return false;
       if (seenPhotos.has(m.url)) return false;
       seenPhotos.add(m.url);
       return true;
     })
     .map((m) => m.url);
-  const video = media.find((m) => m.type === 'video')?.url || firstString(record, ['video_url', 'shop_video']) || '';
+  const videoMedia = media.filter((m) => ['video', 'reel', 'film', 'youtube'].includes(m.type));
+  const rawVideoRecords: any[] = [
+    ...videoMedia.map((m) => ({ ...(typeof m.raw === 'object' ? m.raw : {}), id: m.id, media_url: m.url, caption: m.caption })),
+    ...asArray(firstTruthy(record, ['videos', 'shop_videos', 'video_urls', 'video_links'])),
+  ];
+  const singleVideoUrl = firstString(record, ['video_url', 'shop_video', 'promo_video_url']);
+  if (singleVideoUrl) rawVideoRecords.push(singleVideoUrl);
+  const seenVideos = new Set<string>();
+  const videos: OGVideo[] = [];
+  rawVideoRecords.forEach((item) => {
+    const classified = classifyVideo(item);
+    if (!classified) return;
+    if (seenVideos.has(classified.url)) return;
+    seenVideos.add(classified.url);
+    videos.push(classified);
+  });
+  const video = videos[0]?.url || '';
+
   const heroPhoto =
     firstString(record, ['hero_image_url', 'hero_image', 'cover_image_url', 'cover_photo']) || photos[0] || '';
   const aboutPhoto = photos[1] || photos[0] || '';
@@ -317,13 +470,15 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
         'duration_min',
         'time_minutes',
       ]);
+      const category = asString(svc?.category ?? svc?.service_category ?? svc?.type);
       return {
         id,
         name: asString(svc?.name ?? svc?.service_name ?? svc?.title) || 'Service',
         description: firstString(svc, ['description', 'details', 'short_description', 'about']),
         price,
         duration,
-        category: asString(svc?.category ?? svc?.service_category ?? svc?.type),
+        category,
+        categoryKey: category || OTHER_CATEGORY_KEY,
         image:
           firstString(svc, ['image_url', 'image', 'photo_url', 'photo', 'media_url', 'cover_image']) ||
           extractImage(svc?.images) ||
@@ -340,14 +495,16 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
       return true;
     });
 
-  const categoryCounts = new Map<string, number>();
+  const categoryCounts = new Map<string, { name: string; count: number }>();
   services.forEach((svc) => {
-    if (!svc.category) return;
-    categoryCounts.set(svc.category, (categoryCounts.get(svc.category) || 0) + 1);
+    const entry = categoryCounts.get(svc.categoryKey) || { name: svc.category || OTHER_CATEGORY_LABEL, count: 0 };
+    entry.count += 1;
+    categoryCounts.set(svc.categoryKey, entry);
   });
-  const categories: OGCategory[] = Array.from(categoryCounts.entries()).map(([cat, count]) => ({
-    name: cat,
-    count,
+  const categories: OGCategory[] = Array.from(categoryCounts.entries()).map(([key, entry]) => ({
+    key,
+    name: entry.name,
+    count: entry.count,
   }));
 
   // ── Team ─────────────────────────────────────────────────────────────
@@ -360,6 +517,27 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
         'experience',
         'years_experience',
       ]);
+      const portfolio = Array.from(
+        new Set(
+          [
+            ...asArray(member?.portfolio_photos),
+            ...asArray(member?.portfolio),
+            ...asArray(member?.gallery_photos),
+            ...asArray(member?.work_photos),
+          ]
+            .map((item) => extractImage(item))
+            .filter(Boolean)
+        )
+      );
+      const phoneVisible = member?.hide_mobile_from_public !== true;
+      const staffPhone = phoneVisible
+        ? firstString(member, ['mobile_number', 'phone', 'contact_number', 'whatsapp_number'])
+        : '';
+      const staffDigits = staffPhone.replace(/\D/g, '');
+      const staffWa =
+        phoneVisible && staffDigits
+          ? `https://wa.me/${staffDigits.length > 10 ? staffDigits : staffDigits.length === 10 ? `91${staffDigits}` : staffDigits}`
+          : '';
       return {
         id: asString(member?.id) || `staff-${i}`,
         name: asString(member?.full_name ?? member?.name ?? member?.staff_name) || 'Specialist',
@@ -367,6 +545,12 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
         photo: firstString(member, ['avatar_url', 'profile_photo_url', 'photo_url', 'photo', 'image_url']),
         specializations: toLabelList(member?.specializations ?? member?.specialities ?? member?.skills),
         experience: experienceValue > 0 ? `${experienceValue}+ years` : asString(member?.experience_text),
+        portfolioPhotos: portfolio,
+        phone: staffPhone,
+        whatsappUrl: staffWa,
+        assignedServiceIds: asArray(member?.assigned_service_ids ?? member?.assigned_services)
+          .map((value) => asString(value))
+          .filter(Boolean),
         raw: member,
       } satisfies OGStaff;
     });
@@ -410,8 +594,26 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
   )
     .filter((item: any) => !item || typeof item !== 'object' || (item.is_active !== false && item.active !== false))
     .map((item: any, i: number) => {
-      if (typeof item === 'string') return { id: `offer-${i}`, title: item, description: '', badge: '', code: '', validUntil: '', limited: false } satisfies OGOffer;
+      if (typeof item === 'string') {
+        return {
+          id: `offer-${i}`,
+          title: item,
+          description: '',
+          badge: '',
+          code: '',
+          validUntil: '',
+          limited: false,
+          services: [],
+          price: 0,
+          originalPrice: 0,
+          discountLabel: '',
+        } satisfies OGOffer;
+      }
       const validUntil = firstString(item, ['valid_until', 'valid_till', 'expires_at', 'end_date', 'expiry', 'valid_upto']);
+      const price = firstNumber(item, ['offer_price', 'discounted_price', 'sale_price', 'special_price', 'price']);
+      const originalPrice = firstNumber(item, ['original_price', 'regular_price', 'mrp', 'list_price']);
+      const discountPercent = firstNumber(item, ['discount_percent', 'discount_percentage', 'percent_off']);
+      const discountValue = firstNumber(item, ['discount_value', 'discount_amount', 'flat_discount']);
       return {
         id: asString(item?.id ?? item?.code) || `offer-${i}`,
         title: firstString(item, ['title', 'name', 'offer_title', 'heading']),
@@ -420,6 +622,25 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
         code: firstString(item, ['code', 'coupon_code', 'promo_code', 'coupon']),
         validUntil,
         limited: Boolean(item?.is_limited_time || item?.limited_time || validUntil),
+        services: toLabelList(
+          firstTruthy(item, [
+            'applicable_services',
+            'services',
+            'service_names',
+            'applicable_service_ids',
+            'service_id',
+            'service',
+          ])
+        ),
+        price,
+        originalPrice,
+        discountLabel:
+          firstString(item, ['discount_text', 'discount_label', 'offer_text']) ||
+          (discountPercent > 0
+            ? `${discountPercent}% off`
+            : discountValue > 0
+              ? `₹${discountValue} off`
+              : ''),
       } satisfies OGOffer;
     })
     .filter((offer) => !isExpired(offer.validUntil))
@@ -432,17 +653,36 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
     .filter((item: any) => !item || typeof item !== 'object' || (item.is_active !== false && item.active !== false))
     .map((item: any, i: number) => {
       if (typeof item === 'string') {
-        return { id: `package-${i}`, name: item, description: '', price: 0, period: '', benefits: [] } satisfies OGPackage;
+        return {
+          id: `package-${i}`,
+          name: item,
+          description: '',
+          price: 0,
+          period: '',
+          validity: '',
+          sessions: 0,
+          benefits: [],
+          includedServices: [],
+        } satisfies OGPackage;
       }
-      const period = firstString(item, ['period', 'duration', 'validity', 'valid_for', 'billing_period']);
+      const period = firstString(item, ['period', 'billing_period']);
+      const validity = firstString(item, ['validity', 'valid_for', 'validity_period', 'duration', 'duration_text']);
       const price = firstNumber(item, ['price', 'amount', 'fee', 'cost']);
+      const sessions = firstNumber(item, ['sessions', 'sessions_included', 'total_sessions', 'visits', 'session_count']);
+      const benefits = toLabelList(firstTruthy(item, ['benefits', 'features', 'perks', 'includes', 'inclusions']));
+      const includedServices = toLabelList(
+        firstTruthy(item, ['included_services', 'services', 'service_names', 'applicable_services', 'treatments'])
+      );
       return {
         id: asString(item?.id ?? item?.name) || `package-${i}`,
         name: firstString(item, ['name', 'title', 'package_name', 'plan_name']),
         description: firstString(item, ['description', 'desc', 'details', 'subtitle']),
         price,
         period,
-        benefits: toLabelList(firstTruthy(item, ['benefits', 'features', 'perks', 'includes', 'inclusions'])),
+        validity,
+        sessions,
+        benefits,
+        includedServices,
       } satisfies OGPackage;
     })
     .filter((pkg) => pkg.name || pkg.description || pkg.price > 0);
@@ -575,6 +815,36 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
   }
   const uniqueHighlights = Array.from(new Set(highlights)).slice(0, 6);
 
+  // ── Owner introduction (only explicitly stored owner fields) ─────────
+  const ownerRecord = record.owner && typeof record.owner === 'object' ? record.owner : null;
+  const ownerName =
+    firstString(record, ['owner_name', 'owner_full_name', 'proprietor_name', 'founder_name']) ||
+    firstString(ownerRecord, ['name', 'full_name']);
+  const ownerDesignation =
+    firstString(record, ['owner_designation', 'owner_title', 'owner_role', 'proprietor_title']) ||
+    firstString(ownerRecord, ['designation', 'title', 'role']);
+  const ownerExperienceYears =
+    firstNumber(record, ['owner_experience_years', 'owner_years_of_experience', 'owner_experience']) ||
+    firstNumber(ownerRecord, ['years_of_experience', 'experience_years', 'experience']);
+  const ownerBio =
+    firstString(record, ['owner_bio', 'owner_about', 'owner_description', 'about_owner']) ||
+    firstString(ownerRecord, ['bio', 'about', 'description']);
+  const owner: OGOwner = {
+    name: ownerName,
+    photo:
+      firstString(record, ['owner_photo_url', 'owner_image_url', 'owner_photo', 'owner_image']) ||
+      firstString(ownerRecord, ['photo_url', 'avatar_url', 'photo', 'image']) ||
+      ownerPhoto,
+    designation: ownerDesignation,
+    experience: ownerExperienceYears > 0 ? `${ownerExperienceYears}+ years` : '',
+    specialties: toLabelList(
+      firstTruthy(record, ['owner_specialities', 'owner_specialties', 'owner_expertise']) ??
+        firstTruthy(ownerRecord, ['specializations', 'specialities', 'expertise'])
+    ),
+    bio: ownerBio,
+  };
+  const hasOwner = Boolean(owner.name || owner.photo || owner.bio || owner.designation);
+
   // ── Hours ────────────────────────────────────────────────────────────
   const opening = timeLabel(firstString(record, ['opening_time', 'open_time', 'start_time']).slice(0, 5));
   const closing = timeLabel(firstString(record, ['closing_time', 'close_time', 'end_time']).slice(0, 5));
@@ -650,11 +920,14 @@ export function buildObsidianGoldData(shop: any, staffList: any[] = []): OGSiteD
     tagline: firstString(record, ['tagline', 'slogan', 'subtitle']),
     introduction: aboutText,
     logoUrl,
+    ownerPhoto: hasOwner ? owner.photo : '',
+    owner: hasOwner ? owner : { name: '', photo: '', designation: '', experience: '', specialties: [], bio: '' },
     heroPhoto,
     aboutPhoto,
     bookingPhoto,
     photos,
     video,
+    videos,
     services,
     categories,
     staff,
