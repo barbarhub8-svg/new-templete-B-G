@@ -25,6 +25,13 @@ export const OBSIDIAN_GOLD_PREVIEW_SHOP = {
   name: 'The Royal Turban Barber & Co.',
   category: 'Royal Barber & Luxury Grooming Atelier',
   tagline: 'Padharo mhare des — where Rajputana craft meets modern grooming.',
+  owner_name: 'Vikram Singh Rathore',
+  owner_designation: 'Founder & Creative Director',
+  owner_experience_years: 22,
+  owner_specialities: ['Shahi Beard Sculpting', 'Bridal & Groom Styling'],
+  owner_bio:
+    'Third-generation barber of a Rajasthani royal household, Vikram opened the atelier to bring the shahi grooming rituals of his family to a new generation — every guest is received as a guest of the darbar.',
+  owner_photo_url: PORTRAITS[3],
   description:
     'The Royal Turban Barber & Co. is a private grooming atelier in the heart of C-Scheme, Jaipur, devoted to shahi beard sculpting, Indo-Western hair artistry and restorative Ayurvedic rituals. Every visit begins with a warm welcome and a one-to-one consultation over masala chai, continues with a treatment tailored to your hair and skin, and ends with a finish worthy of a darbar.',
   about_description:

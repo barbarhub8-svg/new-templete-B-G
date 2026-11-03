@@ -32,11 +32,24 @@ export function ReviewsSection({
   const [comment, setComment] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!customerName || !comment) {
-      toast({ title: 'Error', description: 'Please fill in all fields', variant: 'destructive' });
+    setError('');
+
+    const trimmedName = customerName.trim();
+    const trimmedComment = comment.trim();
+    if (trimmedName.length < 2) {
+      setError('Please enter your name (at least 2 characters).');
+      return;
+    }
+    if (trimmedComment.length < 5) {
+      setError('Please write at least a few words about your experience.');
+      return;
+    }
+    if (rating < 1 || rating > 5) {
+      setError('Please choose a rating between 1 and 5 stars.');
       return;
     }
 
@@ -44,18 +57,21 @@ export function ReviewsSection({
       setLoading(true);
       await addReview({
         shop_id: shopId,
-        booking_id: 'temp-booking-id', // Assuming booking_id is required, ideally this should come from a context
-        customer_name: customerName,
+        // A review is only linked to a booking when one is passed in from the
+        // booking confirmation flow. Reviews never fabricate a booking id.
+        customer_name: trimmedName,
         rating,
-        comment,
+        comment: trimmedComment,
       });
       setComment('');
       setCustomerName('');
       setRating(5);
-      toast({ title: 'Success', description: 'Review posted!' });
+      toast({ title: 'Review posted', description: 'Thank you for sharing your experience.' });
       onReviewAdded();
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      const message = err?.message || 'Your review could not be saved. Please try again.';
+      setError(message);
+      toast({ title: 'Review not saved', description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -65,6 +81,15 @@ export function ReviewsSection({
 
   return (
     <div className="space-y-6">
+      {displayReviews && reviewList.length === 0 && (
+        <div className="rounded-sm border border-[#D4AF37]/20 bg-[#1C1C1C] px-5 py-8 text-center">
+          <p className="font-playfair text-lg text-white">No reviews yet</p>
+          <p className="mt-2 text-xs text-white/40">
+            This salon has not received any published reviews. Be the first to share your experience.
+          </p>
+        </div>
+      )}
+
       {displayReviews && reviewList.length > 0 && (
         <div>
           <h3 className="font-playfair font-bold text-white text-xl">What Our Clients Say</h3>
@@ -132,10 +157,15 @@ export function ReviewsSection({
               onChange={(e) => setComment(e.target.value)}
               className="w-full bg-[#0A0A0A] border border-white/10 rounded-xl px-4 py-3 text-white text-sm h-24"
             />
+            {error && (
+              <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-[11px] leading-relaxed text-red-300" role="alert">
+                {error}
+              </p>
+            )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold py-3 rounded-xl flex items-center justify-center gap-2"
+              className="w-full bg-gold hover:bg-gold-light text-[#0A0A0A] font-bold py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               <span>Post Review</span>

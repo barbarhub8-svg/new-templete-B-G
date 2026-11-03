@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   ArrowLeft, Home, Store, Clock, IndianRupee, CheckCircle,
   Loader2, Scissors, Sun, Sunset, Moon, ChevronRight,
-  Phone, Mail, User, MapPin, AlertCircle, Check, Users, Sparkles
+  Phone, Mail, User, MapPin, AlertCircle, Check, Users, Sparkles,
+  X, Bell, Copy, Tag, Package as PackageIcon
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -70,6 +71,22 @@ function groupSlots(slots: TimeSlot[]) {
   return { morning, afternoon, evening };
 }
 
+/** Accepts HH:mm (preferred) or a 12-hour label such as "02:15 PM". */
+function normalizeTimeParam(value: string | null): string {
+  if (!value) return '';
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{1,2}):(\d{2})\s*(am|pm)?$/i);
+  if (!match) return '';
+  let hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (Number.isNaN(hours) || Number.isNaN(minutes) || minutes > 59) return '';
+  const suffix = (match[3] || '').toLowerCase();
+  if (suffix === 'pm' && hours < 12) hours += 12;
+  if (suffix === 'am' && hours === 12) hours = 0;
+  if (hours > 23) return '';
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
 function formatTime12h(time: string): string {
   const [h, m] = time.split(':').map(Number);
   const period = h >= 12 ? 'PM' : 'AM';
@@ -92,7 +109,7 @@ function StepBadge({ n, active, done }: { n: number; active: boolean; done: bool
 // ─── Slot Group ───────────────────────────────────────────────────────────────
 
 function SlotGroup({
-  label, icon: Icon, slots, selected, onSelect, iconClass,
+  label, icon: Icon, slots, selected, onSelect, iconClass, onUnavailable,
 }: {
   label: string;
   icon: any;
@@ -100,6 +117,8 @@ function SlotGroup({
   selected: string;
   onSelect: (time: string) => void;
   iconClass: string;
+  /** Opens the waitlist request for a slot that cannot be booked. */
+  onUnavailable?: (time: string) => void;
 }) {
   if (slots.length === 0) return null;
   const available = slots.filter((s) => s.available).length;
@@ -120,15 +139,21 @@ function SlotGroup({
             <button
               key={slot.time}
               type="button"
-              onClick={() => slot.available && onSelect(slot.time)}
-              disabled={!slot.available}
-              title={slot.reason}
+              onClick={() => {
+                if (slot.available) onSelect(slot.time);
+                else onUnavailable?.(slot.time);
+              }}
+              disabled={!slot.available && !onUnavailable}
+              aria-disabled={!slot.available}
+              title={slot.available ? undefined : `${slot.reason || 'Unavailable'} — join the waitlist`}
               className={`
                 relative py-2.5 px-1 rounded-xl text-xs font-semibold border-2 transition-all duration-150
                 ${isSelected
                   ? 'border-gold bg-gold text-[#0A0A0A] font-bold shadow-gold scale-105'
                   : slot.available
                   ? 'border-white/10 bg-[#181818] hover:border-gold/60 hover:bg-gold/10 text-white font-medium'
+                  : onUnavailable
+                  ? 'border-white/5 bg-white/5 text-white/35 opacity-60 hover:opacity-100 hover:border-gold/30 line-through'
                   : 'border-white/5 bg-white/5 text-white/30 cursor-not-allowed opacity-40 line-through'
                 }
               `}
@@ -223,10 +248,23 @@ export default function BookingPage() {
   // Booking state
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [serviceType, setServiceType] = useState<'in-shop' | 'home'>('in-shop');
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(() => searchParams.get('date') || '');
   const [selectedTime, setSelectedTime] = useState('');
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Context preserved from the public website (offer / package / calendar)
+  const [bookingOffer, setBookingOffer] = useState<{ code?: string; title?: string } | null>(null);
+  const [bookingPackage, setBookingPackage] = useState<{ name?: string; sessions?: number; validity?: string } | null>(
+    null
+  );
+  const [staffNotice, setStaffNotice] = useState('');
+
+  // Waitlist request (no persistent customer waitlist API exists yet)
+  const [waitlistTime, setWaitlistTime] = useState('');
+  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const requestedTimeRef = useRef(normalizeTimeParam(searchParams.get('time')));
+  const requestedTimeAppliedRef = useRef(false);
 
   // Customer details
   const [customerName, setCustomerName] = useState('');
@@ -283,8 +321,31 @@ export default function BookingPage() {
 
       // Handle AI Recommendation pre-selection or router state
       const state = location.state as any;
+      const offerParam = searchParams.get('offer');
+      const packageParam = searchParams.get('packageId');
+      if (state?.offer || offerParam) {
+        setBookingOffer(state?.offer || { code: offerParam || undefined });
+      }
+      if (state?.pkg || packageParam) {
+        setBookingPackage(state?.pkg || { name: packageParam || undefined });
+      }
+
       if (state?.preSelectedServices && state.preSelectedServices.length > 0) {
-        setSelectedServices(state.preSelectedServices);
+        // Keep only services that still exist and are active for this shop.
+        const active = (data.services || []).filter((svc: any) => svc.is_active !== false && svc.active !== false);
+        const byId = new Map(active.map((svc: any) => [svc.id, svc]));
+        const mapped = (state.preSelectedServices as any[])
+          .map((svc) => byId.get(svc?.id) || active.find((item: any) => item.name === svc?.name))
+          .filter(Boolean);
+        if (mapped.length > 0) {
+          setSelectedServices(mapped);
+        } else if (active.length > 0) {
+          setSelectedServices([]);
+          toast({
+            title: 'Services changed',
+            description: 'The selected services are no longer offered. Please choose from the current menu.',
+          });
+        }
       } else if (state?.preSelectedServiceName && data.services) {
         const query = state.preSelectedServiceName.toLowerCase();
         const found = data.services.find(
@@ -312,8 +373,15 @@ export default function BookingPage() {
 
       const preselectId = searchParams.get('staffId');
       if (preselectId) {
-        const found = staffData.find((s) => s.id === preselectId);
-        if (found) setSelectedStaff(found);
+        const found = (staffData || []).find((s) => s.id === preselectId);
+        if (found) {
+          setSelectedStaff(found);
+        } else {
+          setSelectedStaff(null);
+          setStaffNotice(
+            'The specialist you selected is no longer available. Please choose another specialist below.'
+          );
+        }
       }
     } catch (err) {
       console.error('Failed to load shop staff:', err);
@@ -333,7 +401,24 @@ export default function BookingPage() {
 
   const staffScheduleForSelectedDay = useMemo(() => {
     if (!selectedStaff || !selectedDayName) return null;
-    return selectedStaff.weekly_schedule?.[selectedDayName] || null;
+    const staff = selectedStaff as any;
+    const schedule = staff.schedule ?? staff.weekly_schedule;
+    if (Array.isArray(schedule)) {
+      const day = schedule.find(
+        (entry: any) => String(entry?.day || '').toLowerCase() === selectedDayName
+      );
+      return day ? { is_working: day.is_working !== false, start_time: day.start_time, end_time: day.end_time } : null;
+    }
+    if (schedule && typeof schedule === 'object') {
+      const day = schedule[selectedDayName];
+      if (!day) return null;
+      return {
+        is_working: day.is_working !== false,
+        start_time: day.start_time,
+        end_time: day.end_time,
+      };
+    }
+    return null;
   }, [selectedStaff, selectedDayName]);
 
   const isStaffOffOnSelectedDay = useMemo(() => {
@@ -345,14 +430,33 @@ export default function BookingPage() {
   const eligibleStaff = useMemo(() => {
     if (selectedServices.length === 0) return staffList;
     return staffList.filter((s) => {
-      if (!s.assigned_services || s.assigned_services.length === 0) return true;
+      const assigned: string[] = ((s as any).assigned_service_ids || (s as any).assigned_services || []) as string[];
+      if (assigned.length === 0) return true;
       return selectedServices.some((svc) =>
-        s.assigned_services.some(
-          (as) => as.toLowerCase().trim() === svc.name.toLowerCase().trim() || as === svc.id
+        assigned.some(
+          (value) =>
+            String(value).toLowerCase().trim() === String(svc.name).toLowerCase().trim() || value === svc.id
         )
       );
     });
   }, [staffList, selectedServices]);
+
+  // A preselected stylist must still be active and eligible for the chosen services.
+  useEffect(() => {
+    if (!selectedStaff || loadingStaff || staffList.length === 0) return;
+    const stillActive = staffList.some((member) => member.id === selectedStaff.id);
+    if (!stillActive) {
+      setStaffNotice(`${selectedStaff.full_name} is no longer listed as an active specialist. Please choose another specialist.`);
+      setSelectedStaff(null);
+      return;
+    }
+    if (selectedServices.length > 0 && !eligibleStaff.some((member) => member.id === selectedStaff.id)) {
+      setStaffNotice(
+        `${selectedStaff.full_name} does not handle the selected services. Choose another specialist or "Any Specialist".`
+      );
+      setSelectedStaff(null);
+    }
+  }, [selectedStaff, staffList, eligibleStaff, selectedServices.length, loadingStaff]);
 
   // ─── Load Slots ─────────────────────────────────────────────────────────────
 
@@ -401,6 +505,21 @@ export default function BookingPage() {
         bufferMinutes: 15,
       });
       setAvailableSlots(slots);
+
+      // A date/time may arrive from an availability check. Only accept it when
+      // the salon calendar confirms that slot is really open.
+      if (requestedTimeRef.current && !requestedTimeAppliedRef.current) {
+        requestedTimeAppliedRef.current = true;
+        const requested = slots.find((slot) => slot.time === requestedTimeRef.current);
+        if (requested?.available) {
+          setSelectedTime(requested.time);
+        } else {
+          toast({
+            title: 'Time no longer available',
+            description: 'The requested time is taken. Please pick another available slot.',
+          });
+        }
+      }
     } catch {
       toast({ title: 'Error', description: 'Failed to load time slots', variant: 'destructive' });
     } finally {
@@ -435,6 +554,44 @@ export default function BookingPage() {
     );
     // Reset time slots when service selection changes
     setSelectedTime('');
+  }
+
+  // ─── Waitlist request (no persistent customer waitlist API yet) ───────────
+
+  const waitlistRequest = useMemo(
+    () => ({
+      shop_id: shop?.id || shopId || '',
+      shop_name: shop?.name || '',
+      service_ids: selectedServices.map((service) => service.id),
+      service_names: selectedServices.map((service) => service.name),
+      staff_id: selectedStaff?.id || null,
+      staff_name: selectedStaff?.full_name || null,
+      date: selectedDate,
+      time: waitlistTime,
+      customer_name: customerName,
+      customer_email: customerEmail,
+      customer_phone: customerPhone,
+    }),
+    [shop, shopId, selectedServices, selectedStaff, selectedDate, waitlistTime, customerName, customerEmail, customerPhone]
+  );
+
+  const waitlistWhatsAppUrl = useMemo(() => {
+    const raw = (shop?.whatsapp_number || shop?.contact_number || '') as string;
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    const number = digits.length > 10 ? digits : digits.length === 10 ? `91${digits}` : '';
+    if (!number) return '';
+    const message = `Waitlist request for ${shop?.name || 'salon'} — ${selectedServices.map((s) => s.name).join(', ') || 'services'} on ${selectedDate} at ${formatTime12h(waitlistTime)}${selectedStaff ? ` with ${selectedStaff.full_name}` : ''}. Name: ${customerName}. Phone: ${customerPhone}.`;
+    return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+  }, [shop, selectedServices, selectedDate, waitlistTime, selectedStaff, customerName, customerPhone]);
+
+  async function handleCopyWaitlist() {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(waitlistRequest, null, 2));
+      toast({ title: 'Request copied', description: 'Paste it to the salon on WhatsApp or SMS.' });
+    } catch {
+      toast({ title: 'Copy unavailable', description: 'Select the details manually.', variant: 'destructive' });
+    }
   }
 
   // ─── Submit ─────────────────────────────────────────────────────────────────
@@ -482,7 +639,8 @@ export default function BookingPage() {
         staff_id: selectedStaff?.id || undefined,
         staff_name: selectedStaff?.full_name || undefined,
         staff_role: selectedStaff?.primary_role || undefined,
-        staff_avatar: selectedStaff?.profile_photo_url || undefined,
+        staff_avatar:
+          (selectedStaff as any)?.profile_photo_url || (selectedStaff as any)?.avatar_url || undefined,
       });
 
       // Save to localStorage for AI personalized grooming cycle suggestions
@@ -581,6 +739,33 @@ export default function BookingPage() {
             </div>
           ))}
         </div>
+
+        {(bookingOffer || bookingPackage) && (
+          <div className="mb-5 flex flex-wrap items-center gap-3 rounded-xl border border-gold/30 bg-gold/5 px-4 py-3 text-xs text-white/80">
+            {bookingOffer && (
+              <span className="inline-flex items-center gap-2">
+                <Tag className="h-3.5 w-3.5 text-gold" />
+                <span>
+                  Offer context: <strong className="text-gold">{bookingOffer.title || bookingOffer.code}</strong>
+                  {bookingOffer.code ? ` · code ${bookingOffer.code}` : ''}
+                </span>
+              </span>
+            )}
+            {bookingPackage && (
+              <span className="inline-flex items-center gap-2">
+                <PackageIcon className="h-3.5 w-3.5 text-gold" />
+                <span>
+                  Package context: <strong className="text-gold">{bookingPackage.name}</strong>
+                  {bookingPackage.sessions ? ` · ${bookingPackage.sessions} sessions` : ''}
+                  {bookingPackage.validity ? ` · ${bookingPackage.validity}` : ''}
+                </span>
+              </span>
+            )}
+            <span className="text-[10px] uppercase tracking-wide text-white/40">
+              Carried from the salon website
+            </span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="grid lg:grid-cols-3 gap-6">
@@ -735,6 +920,24 @@ export default function BookingPage() {
                         </span>
                       </div>
 
+                      {staffNotice && (
+                        <div className="mb-3 flex items-start gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+                          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" />
+                          <div className="flex-1">
+                            <p className="font-semibold">Specialist update</p>
+                            <p className="mt-0.5 text-amber-200/80">{staffNotice}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setStaffNotice('')}
+                            className="text-amber-300/70 hover:text-amber-200"
+                            aria-label="Dismiss specialist notice"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
+
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                         {/* Option 1: Any Available Specialist */}
                         <button
@@ -780,9 +983,9 @@ export default function BookingPage() {
                                   : 'border-white/10 bg-[#181818] hover:border-gold/40 text-white'
                               }`}
                             >
-                              {staff.profile_photo_url ? (
+                              {(staff as any).profile_photo_url || (staff as any).avatar_url ? (
                                 <img
-                                  src={staff.profile_photo_url}
+                                  src={(staff as any).profile_photo_url || (staff as any).avatar_url}
                                   alt={staff.full_name}
                                   className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gold/30"
                                 />
@@ -900,6 +1103,10 @@ export default function BookingPage() {
                               slots={slotGroups.morning}
                               selected={selectedTime}
                               onSelect={setSelectedTime}
+                              onUnavailable={(time) => {
+                                setWaitlistTime(time);
+                                setWaitlistSubmitted(false);
+                              }}
                             />
                             <SlotGroup
                               label="Afternoon"
@@ -908,6 +1115,10 @@ export default function BookingPage() {
                               slots={slotGroups.afternoon}
                               selected={selectedTime}
                               onSelect={setSelectedTime}
+                              onUnavailable={(time) => {
+                                setWaitlistTime(time);
+                                setWaitlistSubmitted(false);
+                              }}
                             />
                             <SlotGroup
                               label="Evening"
@@ -916,6 +1127,10 @@ export default function BookingPage() {
                               slots={slotGroups.evening}
                               selected={selectedTime}
                               onSelect={setSelectedTime}
+                              onUnavailable={(time) => {
+                                setWaitlistTime(time);
+                                setWaitlistSubmitted(false);
+                              }}
                             />
                             <div className="flex items-center gap-3 mt-3 text-xs text-white/50 font-inter">
                               <div className="flex items-center gap-1.5">
@@ -928,7 +1143,7 @@ export default function BookingPage() {
                               </div>
                               <div className="flex items-center gap-1.5">
                                 <div className="w-3 h-3 rounded border border-white/10 bg-white/5 opacity-50" />
-                                Booked
+                                Booked · tap to join waitlist
                               </div>
                             </div>
                           </>
@@ -1135,6 +1350,25 @@ export default function BookingPage() {
                     <span>Specialist: <strong className="text-foreground">{selectedStaff ? selectedStaff.full_name : 'Any Specialist'}</strong></span>
                   </div>
 
+                  {bookingOffer && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-lg p-2.5 mb-2">
+                      <Tag className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
+                      <span>
+                        Offer: <strong className="text-foreground">{bookingOffer.title || bookingOffer.code}</strong>
+                        {bookingOffer.code ? ` (${bookingOffer.code})` : ''}
+                      </span>
+                    </div>
+                  )}
+
+                  {bookingPackage && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-secondary/30 rounded-lg p-2.5 mb-2">
+                      <PackageIcon className="w-3.5 h-3.5 flex-shrink-0 text-primary" />
+                      <span>
+                        Package: <strong className="text-foreground">{bookingPackage.name}</strong>
+                      </span>
+                    </div>
+                  )}
+
                   {/* Service type */}
                   {serviceType === 'home' && (
                     <div className="flex items-center justify-between text-sm mb-3">
@@ -1212,6 +1446,96 @@ export default function BookingPage() {
           </div>
         </form>
       </div>
+
+      {waitlistTime && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Join waitlist"
+          onClick={() => setWaitlistTime('')}
+        >
+          <div
+            className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-gold/40 bg-[#141414] p-5 text-white shadow-[0_30px_90px_rgba(0,0,0,0.8)] sm:p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-gold">Unavailable slot</p>
+                <h3 className="mt-1 font-playfair text-xl font-bold">
+                  Join the waitlist
+                </h3>
+                <p className="mt-1 text-xs text-white/50">
+                  {selectedDate || 'No date chosen'} at {formatTime12h(waitlistTime)}
+                  {selectedStaff ? ` · ${selectedStaff.full_name}` : ' · Any specialist'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWaitlistTime('')}
+                className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-white/15 text-white/60 hover:text-white"
+                aria-label="Close waitlist"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 space-y-2 rounded-xl border border-white/10 bg-[#0A0A0A] p-3 text-[11px] text-white/60">
+              <p><span className="text-white/35">Shop:</span> {waitlistRequest.shop_name || '—'} <span className="text-white/25">({waitlistRequest.shop_id})</span></p>
+              <p><span className="text-white/35">Services:</span> {waitlistRequest.service_names.join(', ') || '—'} <span className="text-white/25">({waitlistRequest.service_ids.join(', ') || 'none'})</span></p>
+              <p><span className="text-white/35">Specialist:</span> {waitlistRequest.staff_name || 'Any'} <span className="text-white/25">({waitlistRequest.staff_id || 'none'})</span></p>
+              <p><span className="text-white/35">Date / time:</span> {waitlistRequest.date || '—'} · {waitlistRequest.time || '—'}</p>
+              <p><span className="text-white/35">Customer:</span> {waitlistRequest.customer_name || '—'} · {waitlistRequest.customer_phone || '—'} · {waitlistRequest.customer_email || '—'}</p>
+            </div>
+
+            <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[11px] leading-relaxed text-amber-200">
+              <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-400" />
+              <span>
+                Demo request: this salon has no persistent customer waitlist storage, so nothing is saved and no SMS,
+                WhatsApp or email notification is sent. Send the details to the salon yourself using the options below.
+              </span>
+            </div>
+
+            {waitlistSubmitted && (
+              <p className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-[11px] text-emerald-300">
+                Request reviewed. Use WhatsApp or Copy details to send it to the salon — no notification has been sent
+                automatically.
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              {waitlistWhatsAppUrl ? (
+                <a
+                  href={waitlistWhatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gold/40 px-4 py-2.5 text-xs font-semibold text-gold transition-colors hover:bg-gold hover:text-[#0A0A0A]"
+                >
+                  <Bell className="w-3.5 h-3.5" /> Send request on WhatsApp
+                </a>
+              ) : (
+                <span className="rounded-xl border border-white/10 px-3 py-2 text-[11px] text-white/40">
+                  No WhatsApp number published
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={handleCopyWaitlist}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-4 py-2.5 text-xs font-semibold text-white/70 transition-colors hover:text-white"
+              >
+                <Copy className="w-3.5 h-3.5" /> Copy request details
+              </button>
+              <button
+                type="button"
+                onClick={() => setWaitlistSubmitted(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-xs font-bold text-[#0A0A0A] transition-opacity hover:opacity-90"
+              >
+                Review request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -943,18 +943,31 @@ export async function getAvailableStaffForBooking(
  */
 export async function addReview(reviewData: {
   shop_id: string;
-  booking_id: string;
+  /** Required when the review belongs to a completed booking. */
+  booking_id?: string | null;
   customer_name: string;
   rating: number;
-  comment: string;
+  comment?: string;
 }) {
-  const { data, error } = await supabase
-    .from('reviews')
-    .insert(reviewData)
-    .select()
-    .single();
+  const payload: Record<string, any> = {
+    shop_id: reviewData.shop_id,
+    customer_name: reviewData.customer_name,
+    rating: reviewData.rating,
+  };
+  if (typeof reviewData.comment === 'string') payload.comment = reviewData.comment;
+  if (reviewData.booking_id) payload.booking_id = reviewData.booking_id;
 
-  if (error) throw error;
+  const { data, error } = await supabase.from('reviews').insert(payload).select().single();
+  if (error) {
+    // The reviews table requires a real booking reference. Never invent one —
+    // surface the dependency instead of silently failing.
+    if (/booking_id/i.test(error.message || '')) {
+      throw new Error(
+        'This salon stores reviews against a booking reference. Please post your review from the booking confirmation page after your visit.'
+      );
+    }
+    throw error;
+  }
   return data;
 }
 
