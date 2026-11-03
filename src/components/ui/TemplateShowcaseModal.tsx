@@ -13,6 +13,9 @@ export interface SalonTemplate {
   badge: string;
   description: string;
   features: string[];
+  /** Elite Indian demo house showcased in the live preview. */
+  demoBrand: string;
+  demoLocation: string;
 }
 
 export const SALON_TEMPLATES: SalonTemplate[] = [
@@ -24,8 +27,10 @@ export const SALON_TEMPLATES: SalonTemplate[] = [
     image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=900&h=600&fit=crop&q=90',
     accentColor: '#D4AF37',
     badge: 'Signature Theme',
-    description: 'Designed for elite barbers and premium salons seeking a high-status, gold-accented digital presence.',
+    description: 'Crafted for India’s royal barbering houses and premium salons seeking a high-status, gold-accented digital darbar.',
     features: ['Live Multi-View Calendar', 'VIP Member Portal', 'Gold Badge Showcase', 'Instant WhatsApp Booking'],
+    demoBrand: 'The Royal Turban Barber & Co.',
+    demoLocation: 'C-Scheme, Jaipur',
   },
   {
     id: 'minimalist-black',
@@ -35,8 +40,10 @@ export const SALON_TEMPLATES: SalonTemplate[] = [
     image: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=900&h=600&fit=crop&q=90',
     accentColor: '#FFFFFF',
     badge: 'Most Popular',
-    description: 'A contemporary urban style with sharp lines, dark charcoal containers, and crystal-clear service grids.',
+    description: 'A contemporary urban style for metro grooming studios — sharp lines, dark charcoal containers, and crystal-clear service grids.',
     features: ['Minimalist Slot Grid', 'Staff Skill Badges', 'Dark Glass Cards', 'Fast Mobile Checkout'],
+    demoBrand: 'Bespoke Bombay Grooming Co.',
+    demoLocation: 'Bandra West, Mumbai',
   },
   {
     id: 'royal-velvet',
@@ -46,8 +53,10 @@ export const SALON_TEMPLATES: SalonTemplate[] = [
     image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=900&h=600&fit=crop&q=90',
     accentColor: '#E5C158',
     badge: 'Relaxation Focus',
-    description: 'Creates a calming, opulent atmosphere tailored for holistic wellness, spa therapies, and high-end facial studios.',
+    description: 'A calming, opulent atmosphere for Ayurvedic wellness sanctuaries, champi spas, and bridal glow studios.',
     features: ['Therapy Duration Selectors', 'Relaxation Audio Toggles', 'Package Bundling', 'Client Glow Ratings'],
+    demoBrand: 'Jaipur Royal Salon & Spa',
+    demoLocation: 'Civil Lines, Jaipur',
   },
   {
     id: 'chic-bohemian',
@@ -57,8 +66,10 @@ export const SALON_TEMPLATES: SalonTemplate[] = [
     image: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=900&h=600&fit=crop&q=90',
     accentColor: '#D9A76A',
     badge: 'Creative Choice',
-    description: 'Warm, inviting color palettes with artisanal photo grids and vibrant styling portfolios.',
+    description: 'Warm, inviting palettes with artisanal photo grids — made for boutique ateliers and creative styling houses.',
     features: ['Portfolio Gallery Tab', 'Nail Art Customizer', 'Instagram Feed Sync', 'Referral Rewards Widget'],
+    demoBrand: 'Maharaja & Mane Luxury Atelier',
+    demoLocation: 'Khan Market, New Delhi',
   },
 ];
 
@@ -91,7 +102,7 @@ export function TemplateShowcaseModal({
             </div>
             <div>
               <h2 className="font-playfair font-bold text-xl text-white tracking-wide">Website Template Showcase</h2>
-              <p className="text-xs text-white/40 font-inter">Explore signature dark luxury themes designed for modern salon brands</p>
+              <p className="text-xs text-white/40 font-inter">Signature dark luxury themes crafted for India’s elite salon & wellness houses</p>
             </div>
           </div>
           <button
@@ -143,6 +154,9 @@ export function TemplateShowcaseModal({
                     <p className="text-xs text-white/35 font-inter pt-1">
                       {tmpl.description}
                     </p>
+                    <p className="text-[11px] text-gold/70 font-inter pt-1.5">
+                      Live preview: {tmpl.demoBrand} · {tmpl.demoLocation}
+                    </p>
 
                     {/* Features list */}
                     <div className="grid grid-cols-2 gap-2 pt-2">
@@ -183,7 +197,7 @@ export function TemplateShowcaseModal({
         {/* Footer */}
         <div className="px-6 sm:px-8 py-4 bg-[#181818] border-t border-white/8 flex items-center justify-between">
           <p className="text-xs text-white/40 font-inter">
-            All themes are fully customizable upon registering your salon.
+            Every theme is fully customizable when you register your salon — your digital darbar awaits.
           </p>
           <button
             type="button"

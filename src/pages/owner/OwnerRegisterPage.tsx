@@ -45,14 +45,14 @@ const DEDICATED_NAIL_SERVICES = [
 ];
 
 const GENERAL_SERVICES = [
-  { id: 's1', name: 'Hair Cut',   emoji: '✂️', price: 150, duration: 30, isNail: false },
-  { id: 's2', name: 'Beard Trim', emoji: '🧔', price: 100, duration: 20, isNail: false },
-  { id: 's3', name: 'Shaving',    emoji: '🪒', price: 80,  duration: 15, isNail: false },
-  { id: 's4', name: 'Facial',     emoji: '✨', price: 300, duration: 45, isNail: false },
-  { id: 's5', name: 'Massage',    emoji: '💆', price: 400, duration: 60, isNail: false },
-  { id: 's6', name: 'Hair Color', emoji: '🎨', price: 800, duration: 90, isNail: false },
-  { id: 's7', name: 'Hair Wash',  emoji: '🚿', price: 80,  duration: 20, isNail: false },
-  { id: 's8', name: 'Keratin',    emoji: '💇', price: 2500,duration: 120, isNail: false },
+  { id: 's1', name: 'Designer Indo-Western Hair Styling & Cut',            emoji: '✂️', price: 1800, duration: 60, isNail: false },
+  { id: 's2', name: 'Royal Shahi Beard Sculpt & Hot Towel Treatment',      emoji: '🧔', price: 950, duration: 40, isNail: false },
+  { id: 's3', name: 'Kesar & Sandalwood Royal Straight Razor Shave',       emoji: '🪒', price: 1200, duration: 45, isNail: false },
+  { id: 's4', name: 'Ubtan & Gold Leaf Bridal/Groom Facial Glow Ritual',   emoji: '✨', price: 3500, duration: 75, isNail: false },
+  { id: 's5', name: 'Ayurvedic Scalp Detox & Champi Therapy',              emoji: '💆', price: 1600, duration: 50, isNail: false },
+  { id: 's6', name: 'Bespoke Balayage & Gloss Ritual',                     emoji: '🎨', price: 4200, duration: 120, isNail: false },
+  { id: 's7', name: 'Keratin Silk Hair Spa',                               emoji: '💇', price: 2200, duration: 90, isNail: false },
+  { id: 's8', name: 'Pre-Wedding Royal Groom Package',                     emoji: '👑', price: 6500, duration: 150, isNail: false },
 ];
 
 const SERVICES_OPTIONS = [
@@ -536,7 +536,7 @@ export default function OwnerRegisterPage() {
               <div className="relative">
                 <Store className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
                 <input value={shopName} onChange={(e) => setShopName(e.target.value)}
-                  placeholder="e.g., Elite Cuts & Grooming"
+                  placeholder="e.g., The Royal Turban Barber & Co."
                   className={inputCls + ' pl-10'} />
               </div>
             </div>
@@ -566,7 +566,7 @@ export default function OwnerRegisterPage() {
             <div>
               <label className={labelCls}>City *</label>
               <input value={shopCity} onChange={(e) => setShopCity(e.target.value)}
-                placeholder="Enter city name" className={inputCls} />
+                placeholder="e.g., Jaipur, Mumbai, New Delhi, Hyderabad" className={inputCls} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

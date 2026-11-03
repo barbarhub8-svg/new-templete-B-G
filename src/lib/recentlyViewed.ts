@@ -15,7 +15,8 @@ export interface RecentlyViewedSalon {
   viewedAt: number;
 }
 
-const STORAGE_KEY = 'nexora_recently_viewed_salons';
+// v2: refreshed for the localized Indian luxury brand ecosystem.
+const STORAGE_KEY = 'nexora_recently_viewed_salons_v2';
 const MAX_STORED = 10;
 export const MAX_DISPLAYED = 3;
 
@@ -51,15 +52,15 @@ export const DEFAULT_RECENT_SALONS: RecentlyViewedSalon[] = [
   },
   {
     id: 'dummy-1',
-    name: 'The Royal Barberia',
-    tagline: 'Luxury grooming with modern fades and classic precision styling.',
+    name: 'The Royal Turban Barber & Co.',
+    tagline: 'Padharo mhare des — royal Rajputana grooming with modern Indo-Western artistry.',
     photo: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=900&h=600&fit=crop&q=90',
     rating: 4.9,
     totalReviews: 312,
-    city: 'Mumbai',
-    address: 'Bhilwara, Rajasthan',
-    tags: ['In-Shop', 'Skin Fade', 'Beard Styling', 'Premium'],
-    homeService: false,
+    city: 'Jaipur',
+    address: '12, Heritage Arcade, C-Scheme, Jaipur',
+    tags: ['Heritage Atelier', 'Shahi Beard Sculpt', 'Indo-Western', 'Premium'],
+    homeService: true,
     category: 'Barbershop',
     viewedAt: Date.now() - 1000 * 60 * 120, // 2 hours ago
   },

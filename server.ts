@@ -115,68 +115,68 @@ function getHeuristicRecommendations(history: any[], preferences: string[], city
 
   const items = [
     {
-      id: 'rec-fade-beard',
-      title: 'Royal Skin Fade & Argan Beard Contour',
-      category: 'Skin Fade',
-      matchReason: hasHistory && historyNames.includes('fade')
-        ? 'Based on your previous haircut 3 weeks ago, a fade maintenance trim keeps your neckline and silhouette razor-sharp.'
-        : 'Top requested pairing for luxury modern grooming with clean geometric lines.',
-      cycleInsight: 'Ideal cycle: Refresh every 2–3 weeks',
-      estimatedPrice: 650,
-      estimatedDuration: '45 mins',
-      suggestedSalon: 'The Royal Barberia',
+      id: 'rec-indowestern-cut',
+      title: 'Designer Indo-Western Hair Styling & Cut',
+      category: 'Hair Cut',
+      matchReason: hasHistory && (historyNames.includes('cut') || historyNames.includes('fade'))
+        ? 'Based on your previous styling session 3 weeks ago, a refresh keeps your Indo-Western silhouette razor-sharp.'
+        : 'The most requested signature cut across our royal atelier — bespoke Indian and Western styling in one sitting.',
+      cycleInsight: 'Ideal cycle: Refresh every 3–4 weeks',
+      estimatedPrice: 1800,
+      estimatedDuration: '60 mins',
+      suggestedSalon: 'The Royal Turban Barber & Co.',
       suggestedShopId: 'dummy-1',
       matchScore: 98,
-      tags: ['AI Top Match', 'Precision Fade', 'Hot Towel Finish'],
+      tags: ['AI Top Match', 'Indo-Western', 'Consultation Included'],
       homeServiceEligible: true,
-      serviceName: 'Modern Skin Fade & Razor Detailing',
+      serviceName: 'Designer Indo-Western Hair Styling & Cut',
     },
     {
-      id: 'rec-gold-spa',
-      title: 'Royal Gold Scalp Detox & Acupressure Spa',
+      id: 'rec-champi-detox',
+      title: 'Ayurvedic Scalp Detox & Champi Therapy',
       category: 'Hair Spa',
       matchReason: selectedPrefs.includes('spa') || (hasHistory && historyNames.includes('spa'))
         ? 'Matches your preference for scalp relaxation and stress relief.'
-        : 'Combat urban pollution and hair fatigue with deep conditioning botanical oils.',
+        : 'Combat urban pollution and hair fatigue with bhringraj-amla detox and a slow traditional champi.',
       cycleInsight: 'Ideal cycle: Once every 4 weeks',
-      estimatedPrice: 1200,
-      estimatedDuration: '60 mins',
-      suggestedSalon: 'The Royal Barberia',
+      estimatedPrice: 1600,
+      estimatedDuration: '50 mins',
+      suggestedSalon: 'The Royal Turban Barber & Co.',
       suggestedShopId: 'dummy-1',
       matchScore: 94,
-      tags: ['Revitalizing', 'Deep Scalp Care', 'Essential Oils'],
+      tags: ['Ayurvedic', 'Champi Therapy', 'Bhringraj & Amla'],
       homeServiceEligible: true,
-      serviceName: 'Royal Gold Scalp & Hair Spa',
+      serviceName: 'Ayurvedic Scalp Detox & Champi Therapy',
     },
     {
-      id: 'rec-charcoal-facial',
-      title: 'Executive Charcoal Detox & Glow Facial',
+      id: 'rec-ubtan-glow',
+      title: 'Ubtan & Gold Leaf Bridal/Groom Facial Glow Ritual',
       category: 'Facial',
-      matchReason: 'Perfect skin refresher before key meetings or weekend social events.',
-      cycleInsight: 'Ideal cycle: Once every 3–4 weeks for clear skin',
-      estimatedPrice: 850,
-      estimatedDuration: '50 mins',
-      suggestedSalon: 'The Royal Barberia',
+      matchReason: 'The perfect radiance boost before weddings, festive celebrations or key meetings — ubtan wisdom meets 24K gold leaf.',
+      cycleInsight: 'Ideal cycle: Monthly skin renewal, or 1 week before a big event',
+      estimatedPrice: 3500,
+      estimatedDuration: '75 mins',
+      suggestedSalon: 'The Royal Turban Barber & Co.',
       suggestedShopId: 'dummy-1',
       matchScore: 91,
-      tags: ['De-Tan', 'Pore Cleanse', 'Gold Brightening'],
+      tags: ['Ubtan Ritual', '24K Gold Leaf', 'Bridal & Groom'],
       homeServiceEligible: true,
-      serviceName: 'Executive Charcoal Detox Facial',
+      serviceName: 'Ubtan & Gold Leaf Bridal/Groom Facial Glow Ritual',
     },
     {
-      id: 'rec-shave-express',
-      title: 'Traditional Straight Razor Wet Shave',
+      id: 'rec-shahi-beard',
+      title: 'Royal Shahi Beard Sculpt & Hot Towel Treatment',
       category: 'Beard Styling',
-      matchReason: 'Classic Turkish & Italian barbering style with hot lather and cold sandalwood towel.',
-      cycleInsight: 'Ideal cycle: Weekly or bi-weekly grooming',
-      estimatedPrice: 350,
-      estimatedDuration: '30 mins',
-      suggestedSalon: 'The Royal Barberia',
+      matchReason: 'Heritage Rajputana beard architecture with hot towel compress and kesar-sandalwood oils.',
+      cycleInsight: 'Ideal cycle: Every 2 weeks for sharp, regal lines',
+      estimatedPrice: 950,
+      estimatedDuration: '40 mins',
+      suggestedSalon: 'The Royal Turban Barber & Co.',
       suggestedShopId: 'dummy-1',
       matchScore: 89,
-      tags: ['Sandalwood Balm', 'Old-School Craft'],
+      tags: ['Shahi Sculpt', 'Hot Towel', 'Kesar-Sandalwood'],
       homeServiceEligible: true,
-      serviceName: 'Traditional Straight Razor Shave',
+      serviceName: 'Royal Shahi Beard Sculpt & Hot Towel Treatment',
     },
   ];
 
@@ -185,7 +185,7 @@ function getHeuristicRecommendations(history: any[], preferences: string[], city
 
 // ─── AI Recommendations Endpoint ──────────────────────────────────────────────
 app.post('/api/ai/recommendations', async (req: Request, res: Response) => {
-  const { bookingHistory = [], preferences = [], city = 'Mumbai', serviceType = 'any' } = req.body || {};
+  const { bookingHistory = [], preferences = [], city = 'Jaipur', serviceType = 'any' } = req.body || {};
   const apiKey = process.env.GEMINI_API_KEY?.trim();
 
   // If no valid GEMINI_API_KEY format is present, gracefully return smart heuristic suggestions
@@ -213,17 +213,17 @@ User Context:
 - Client Booking History:
 ${historyDescription}
 
-- Active Client Grooming Preferences: ${preferences.length > 0 ? preferences.join(', ') : 'Modern Haircuts, Beard Sculpting, Luxury Scalp Care'}
-- Preferred Location/City: ${city || 'Mumbai'}
+- Active Client Grooming Preferences: ${preferences.length > 0 ? preferences.join(', ') : 'Indo-Western Haircuts, Shahi Beard Sculpting, Ayurvedic Scalp Care'}
+- Preferred Location/City: ${city || 'Jaipur'}
 - Preferred Service Setting: ${serviceType} (in-shop / home / any)
 
-Available Partner Salons:
+Available Partner Salons (elite Indian luxury grooming houses, all prices in INR):
 1. "The Royal Jiva Spa & Salon at Rambagh Palace" (ID: dummy-jp-1) - Services: Royal Saffron & Gold Body Polish (₹3500), Maharaja Heritage Head & Scalp Therapy (₹1800), Rambagh Signature Scissor Cut & Beard Trim (₹1200)
 2. "Maharaja's Crown Barberia at City Palace" (ID: dummy-jp-2) - Services: Maharaja Straight Razor Shave & Sandalwood Compress (₹550), Royal Crown Haircut & Detailing (₹700), Rajputana Beard Sculpting (₹500)
 3. "The Royal Rajputana Lounge & Salon" (ID: dummy-jp-6) - Services: C-Scheme Signature Skin Fade & Texture Cut (₹650), Moroccan Argan Oil Scalp & Hair Treatment (₹1300)
-4. "The Royal Barberia" (ID: dummy-1) - Services: Signature Royal Haircut & Beard Sculpting (₹650), Royal Gold Scalp & Hair Spa (₹1200), Modern Skin Fade & Razor Detailing (₹450)
-5. "Classic Cuts Studio" (ID: dummy-2) - Services: Classic Executive Scissor Cut (₹500), Argan Oil Deep Conditioning Spa (₹900)
-6. "Urban Fade Lounge" (ID: dummy-3) - Services: Urban Low Skin Fade & Texture Top (₹550)
+4. "The Royal Turban Barber & Co." (ID: dummy-1, C-Scheme Jaipur) - Services: Designer Indo-Western Hair Styling & Cut (₹1800), Royal Shahi Beard Sculpt & Hot Towel Treatment (₹950), Ayurvedic Scalp Detox & Champi Therapy (₹1600), Ubtan & Gold Leaf Bridal/Groom Facial Glow Ritual (₹3500), Pre-Wedding Royal Groom Package (₹6500)
+5. "Bespoke Bombay Grooming Co." (ID: dummy-2, Bandra West Mumbai) - Services: Designer Indo-Western Hair Styling & Cut (₹1800), Ayurvedic Scalp Detox & Champi Therapy (₹1600), Royal Shahi Beard Sculpt & Hot Towel Treatment (₹950)
+6. "Maharaja & Mane Luxury Atelier" (ID: dummy-3, Khan Market New Delhi) - Services: Designer Indo-Western Hair Styling & Cut (₹1800), Ubtan & Gold Leaf Bridal/Groom Facial Glow Ritual (₹3500), Royal Shahi Beard Sculpt & Hot Towel Treatment (₹950)
 
 Return a strictly valid JSON response adhering to this JSON schema:
 {
@@ -235,12 +235,12 @@ Return a strictly valid JSON response adhering to this JSON schema:
       "category": "Hair Cut | Beard Styling | Hair Spa | Facial | Skin Fade | Color",
       "matchReason": "Personalized 1-2 sentence explanation of why this is ideal for their specific grooming cycle or selected preferences",
       "cycleInsight": "Grooming cycle tip (e.g., 'Recommended cadence: Every 2-3 weeks for sharp lines')",
-      "estimatedPrice": 650,
-      "estimatedDuration": "45 mins",
-      "suggestedSalon": "The Royal Barberia",
+      "estimatedPrice": 1800,
+      "estimatedDuration": "60 mins",
+      "suggestedSalon": "The Royal Turban Barber & Co.",
       "suggestedShopId": "dummy-1",
       "matchScore": 97,
-      "tags": ["AI Top Pick", "Precision Cut", "Hot Towel"],
+      "tags": ["AI Top Pick", "Indo-Western Cut", "Hot Towel"],
       "homeServiceEligible": true,
       "serviceName": "Exact name of matching service from available partner salons"
     }

@@ -1,6 +1,6 @@
 {
-  "name": "Nexora - Salon Appointment Booking",
-  "description": "Find and book appointments at top-rated salons and barbershops across India. Conveniently book professional grooming and beauty services for salon visits or home appointments.",
+  "name": "Nexora - India's Luxury Salon & Wellness Booking",
+  "description": "Book India's elite salons, royal barbershops and Ayurvedic wellness sanctuaries — from C-Scheme Jaipur to Bandra West Mumbai, Khan Market New Delhi and Jubilee Hills Hyderabad. Premium grooming rituals, in-shop or at home.",
   "permissions": [],
   "capabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

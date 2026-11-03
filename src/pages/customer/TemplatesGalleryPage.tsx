@@ -32,7 +32,7 @@ export default function TemplatesGalleryPage() {
           </h1>
 
           <p className="text-white/60 text-base sm:text-lg font-inter leading-relaxed max-w-2xl mx-auto">
-            Choose from our meticulously crafted dark luxury templates designed for elite barbers, high-end salons, and luxury wellness spas. Click 'Live Preview' to experience the interactive client booking flow.
+            Choose from our meticulously crafted dark luxury templates designed for India’s elite barbering houses, premium salons, and Ayurvedic wellness sanctuaries. Click 'Live Preview' to experience the interactive client booking flow.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs text-white/50 font-inter">
@@ -91,6 +91,9 @@ export default function TemplatesGalleryPage() {
                   </p>
                   <p className="text-xs text-white/40 font-inter pt-1">
                     {tmpl.description}
+                  </p>
+                  <p className="text-[11px] text-gold/70 font-inter pt-1.5">
+                    Live preview: {tmpl.demoBrand} · {tmpl.demoLocation}
                   </p>
 
                   {/* Feature Checklist */}
