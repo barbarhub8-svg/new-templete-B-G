@@ -1,10 +1,21 @@
-import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  FileText, ChevronDown, ChevronRight, Shield, Store,
-  Users, IndianRupee, RotateCcw, AlertCircle, CheckCircle,
-  Scale, Mail, ArrowLeft, Star, Home
+AlertCircle,
+ArrowLeft,
+CheckCircle,
+ChevronDown,ChevronRight,
+FileText,
+Home,
+IndianRupee,
+Mail,
+RotateCcw,
+Scale,
+Shield,
+Star,
+Store,
+Users
 } from 'lucide-react';
+import { useRef,useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -1,9 +1,8 @@
-import React from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Shield, ChevronRight, Menu, X } from 'lucide-react';
-import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../lib/supabase';
+import { ChevronRight,LayoutDashboard,LogOut,Menu,Shield,X } from 'lucide-react';
 import { useState } from 'react';
+import { Outlet,useLocation,useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
 
 export default function AdminLayout() {
   const navigate = useNavigate();

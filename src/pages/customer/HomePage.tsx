@@ -14,7 +14,8 @@ import { LimitedTimeOfferBanner } from '@/components/ui/LimitedTimeOfferBanner';
 import { HeroBackgroundCarousel } from '@/components/ui/HeroBackgroundCarousel';
 import { FeaturedNailStudios } from '@/components/ui/FeaturedNailStudios';
 import { ServiceFilterStrip } from '@/components/ui/ServiceFilterStrip';
-import { LocationAutoSuggest, CURATED_LOCATIONS, LocationOption } from '@/components/ui/LocationAutoSuggest';
+import { LocationAutoSuggest } from '@/components/ui/LocationAutoSuggest';
+import { CURATED_LOCATIONS, type LocationOption } from '@/components/ui/LocationAutoSuggestData';
 import { RecentlyViewedCarousel } from '@/components/ui/RecentlyViewedCarousel';
 import { recordSalonVisit } from '@/lib/recentlyViewed';
 

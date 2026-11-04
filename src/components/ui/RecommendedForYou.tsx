@@ -1,15 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Sparkles, Star, Clock, Home, Store, ArrowRight, RefreshCw,
-  SlidersHorizontal, Check, Zap, ShieldCheck, Heart, User, ChevronRight,
-  TrendingUp, Award, Info
-} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+ArrowRight,
+Check,
+Clock,Home,
+RefreshCw,
+SlidersHorizontal,
+Sparkles,
+Store
+} from 'lucide-react';
+import { useCallback,useEffect,useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export interface RecommendationItem {
   id: string;

@@ -2,7 +2,7 @@
 // IN-MEMORY / LOCALSTORAGE MOCK DATABASE FOR AI STUDIO
 // =====================================================
 
-import { mockShops, mockBookings, mockWallet } from './mockData';
+import { mockBookings,mockShops,mockWallet } from './mockData';
 
 const STORAGE_KEY_PREFIX = 'nexora_mock_';
 // Bump when seed content changes so cached demo data is refreshed.
@@ -772,9 +772,9 @@ export function createMockSupabaseClient() {
       return new MockQueryBuilder(table);
     },
     storage: {
-      from(bucket: string) {
+      from(_bucket: string) {
         return {
-          upload: async (path: string, file: File) => {
+          upload: async (_path: string, file: File) => {
             const publicUrl = URL.createObjectURL(file);
             return { data: { path: publicUrl }, error: null };
           },
@@ -809,7 +809,7 @@ export function createMockSupabaseClient() {
       return { data: null, error: null };
     },
     auth: {
-      signUp: async ({ email, password, options }: any) => {
+      signUp: async ({ email, options }: any) => {
         const user = {
           id: `user-${Date.now()}`,
           email,
@@ -824,7 +824,7 @@ export function createMockSupabaseClient() {
           error: null,
         };
       },
-      signInWithPassword: async ({ email, password }: any) => {
+      signInWithPassword: async ({ email }: any) => {
         const isAdmin = email.toLowerCase().includes('admin');
         const user = {
           id: isAdmin ? 'admin-1' : 'owner1',

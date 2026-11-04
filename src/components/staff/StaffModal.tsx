@@ -1,19 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
 import {
-  X, Camera, User, Phone, Briefcase, Percent, Check,
-  Clock, Scissors, Sparkles, Shield, AlertCircle, Loader2,
-  Calendar, CheckCircle2, ChevronDown, Lock, Plus,
-  TrendingUp, Award, Star, IndianRupee
+AlertCircle,
+Camera,
+Check,
+ChevronDown,
+Clock,
+Loader2,
+Lock,
+Phone,
+Plus,
+Scissors,
+Shield,
+Sparkles,
+Star,
+TrendingUp,
+User,
+X
 } from 'lucide-react';
-import {
-  StaffMember,
-  StaffPrimaryRole,
-  StaffAppAccessRole,
-  StaffStatus,
-  StaffScheduleDay,
-  DbService,
-} from '../../types';
+import React,{ useEffect,useRef,useState } from 'react';
 import { uploadStaffPhoto } from '../../lib/staffService';
+import {
+DbService,
+StaffAppAccessRole,
+StaffMember,
+StaffPrimaryRole,
+StaffScheduleDay,
+StaffStatus,
+} from '../../types';
 
 interface StaffModalProps {
   isOpen: boolean;
@@ -236,13 +248,6 @@ export default function StaffModal({
     } finally {
       setUploadingPhoto(false);
     }
-  }
-
-  // Toggle Service
-  function toggleService(serviceId: string) {
-    setAssignedServiceIds((prev) =>
-      prev.includes(serviceId) ? prev.filter((id) => id !== serviceId) : [...prev, serviceId]
-    );
   }
 
   function handleSelectAllServices() {

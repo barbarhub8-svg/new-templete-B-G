@@ -1,21 +1,35 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Star, MapPin, Clock, Home, IndianRupee, ArrowLeft,
-  Loader2, Phone, X, ChevronLeft, ChevronRight, Check, Scissors,
-  PlayCircle, Share2, ArrowUpRight, ExternalLink, ZoomIn,
-  Calendar, Users, Award, ChevronDown, ChevronUp, Info
+ArrowLeft,
+ArrowUpRight,
+Award,
+Calendar,
+Check,
+ChevronLeft,ChevronRight,
+Clock,
+ExternalLink,
+Home,IndianRupee,
+Loader2,
+MapPin,
+Phone,
+PlayCircle,
+Scissors,
+Share2,
+Star,
+X,
+ZoomIn
 } from 'lucide-react';
-import { useToast } from '../../hooks/use-toast';
-import { getShopById, getShopStaff } from '../../lib/api';
-import type { StaffMember } from '../../types';
-import { recordSalonVisit } from '../../lib/recentlyViewed';
-import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
+import { useCallback,useEffect,useRef,useState } from 'react';
+import { useNavigate,useParams } from 'react-router-dom';
+import { OBSIDIAN_GOLD_TEMPLATE_ID,ObsidianGoldLuxury } from '../../components/templates/ObsidianGoldLuxury';
 import { ClientTestimonialsSection } from '../../components/ui/ClientTestimonialsSection';
-import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
-import { ReviewsSection } from '../../components/ui/ReviewsSection';
+import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
 import { MultiViewBookingCalendarModal } from '../../components/ui/MultiViewBookingCalendarModal';
-import { ObsidianGoldLuxury, OBSIDIAN_GOLD_TEMPLATE_ID } from '../../components/templates/ObsidianGoldLuxury';
+import { ReviewsSection } from '../../components/ui/ReviewsSection';
+import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
+import { useToast } from '../../hooks/use-toast';
+import { getShopById,getShopStaff } from '../../lib/api';
+import { recordSalonVisit } from '../../lib/recentlyViewed';
+import type { StaffMember } from '../../types';
 
 function fmt12h(t: string) {
   if (!t) return '';
@@ -44,7 +58,7 @@ function Lightbox({ photos, index, onClose, onPrev, onNext }: {
     window.addEventListener('keydown', fn);
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', fn); document.body.style.overflow = ''; };
-  }, []);
+  }, [onClose, onPrev, onNext]);
 
   return (
     <div className="fixed inset-0 z-[300] bg-[#0A0A0A]/98 flex flex-col" onClick={onClose}>
@@ -141,30 +155,6 @@ function ServiceItem({ service, selected, onToggle }: { service: any; selected: 
   );
 }
 
-function ReviewCard({ review }: { review: any }) {
-  return (
-    <div className="bg-[#1E1E1E] border border-white/8 rounded-2xl p-5">
-      <div className="flex items-start justify-between mb-3 gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/25 flex items-center justify-center font-bold text-gold text-sm flex-shrink-0">
-            {review.customer_name?.charAt(0)?.toUpperCase() || 'C'}
-          </div>
-          <div>
-            <p className="font-semibold text-sm text-white">{review.customer_name}</p>
-            <div className="flex items-center gap-0.5 mt-0.5">
-              {[1,2,3,4,5].map((i) => <Star key={i} className={`w-3 h-3 ${i <= review.rating ? 'fill-gold text-gold' : 'text-white/15'}`} />)}
-            </div>
-          </div>
-        </div>
-        <span className="text-[11px] text-white/25 flex-shrink-0 font-inter">
-          {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-        </span>
-      </div>
-      {review.comment && <p className="text-sm text-white/50 leading-relaxed font-inter">{review.comment}</p>}
-    </div>
-  );
-}
-
 export default function ShopMiniWebsite() {
   const { shopId } = useParams();
   const navigate = useNavigate();
@@ -176,21 +166,18 @@ export default function ShopMiniWebsite() {
   const [selectedServices, setSelectedServices] = useState<any[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [showAllReviews, setShowAllReviews] = useState(false);
-  const [showHours, setShowHours] = useState(false);
   const [stickyVisible, setStickyVisible] = useState(false);
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { if (shopId) loadShop(); else navigate('/'); }, [shopId]);
   useEffect(() => {
     const h = () => { const b = heroRef.current?.getBoundingClientRect().bottom ?? 0; setStickyVisible(b < 0); };
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  async function loadShop() {
+  const loadShop = useCallback(async () => {
     try {
       setLoading(true);
       const [data, staff] = await Promise.all([
@@ -205,8 +192,9 @@ export default function ShopMiniWebsite() {
       toast({ title: 'Shop Not Found', description: err.message, variant: 'destructive' });
       setTimeout(() => navigate('/'), 2000);
     } finally { setLoading(false); }
-  }
+  }, [shopId, navigate, toast]);
 
+  useEffect(() => { if (shopId) loadShop(); else navigate('/'); }, [shopId, navigate, loadShop]);
   const photos: string[] = (shop?.shop_media ?? [])
     .filter((m: any) => m.media_type === 'photo')
     .sort((a: any, b: any) => (a.display_order ?? 0) - (b.display_order ?? 0))
@@ -218,7 +206,7 @@ export default function ShopMiniWebsite() {
 
   const videoMedia = (shop?.shop_media ?? []).find((m: any) => m.media_type === 'video');
   const activeServices = (shop?.services ?? []).filter((s: any) => s.is_active !== false);
-  const categories = Array.from(new Set(activeServices.map((s: any) => s.category || 'General')));
+  const categories = Array.from(new Set<string>(activeServices.map((s: { category?: string | null }) => s.category || 'General')));
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const filteredServices = selectedCategory 
     ? activeServices.filter((s: any) => (s.category || 'General') === selectedCategory)
@@ -273,7 +261,6 @@ export default function ShopMiniWebsite() {
   const whatsappUrl = shop.contact_number
     ? `https://wa.me/91${shop.contact_number.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi! I'd like to book at ${shop.name}.`)}`
     : null;
-  const visibleReviews = showAllReviews ? reviews : reviews.slice(0, 4);
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
@@ -503,7 +490,7 @@ export default function ShopMiniWebsite() {
             {categories.map(cat => (
               <button 
                 key={cat} 
-                onClick={() => setSelectedCategory(cat as string)}
+                onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedCategory === cat ? 'bg-gold text-[#0A0A0A]' : 'bg-white/10 text-white/60'}`}>
                 {cat}
               </button>

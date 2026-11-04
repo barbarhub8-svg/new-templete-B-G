@@ -1,14 +1,14 @@
+import { ArrowRight,Lock,Mail } from 'lucide-react';
 import { useState } from 'react';
-import { Mail, ArrowRight, Lock } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
-import { signUp, signIn } from '../../lib/auth';
+import { signIn,signUp } from '../../lib/auth';
 
 interface GmailOtpVerificationProps {
   onVerified: (email: string) => void;
   buttonText?: string;
 }
 
-export default function GmailOtpVerification({ onVerified, buttonText = 'Continue' }: GmailOtpVerificationProps) {
+export default function GmailOtpVerification({ onVerified }: GmailOtpVerificationProps) {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

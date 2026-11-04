@@ -1,27 +1,40 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-  Calendar, Clock, CheckCircle, XCircle, AlertCircle, User, Phone,
-  Home, Loader2, IndianRupee, Scissors, Sun, Sunset, Moon,
-  ChevronRight, X, Store, Check, ArrowRight, Star, Users
+AlertCircle,
+ArrowRight,
+Calendar,
+Check,
+CheckCircle,
+ChevronRight,
+Clock,
+Home,Loader2,
+Moon,
+Phone,
+Scissors,
+Star,
+Sun,Sunset,
+User,
+Users,
+X,
+XCircle
 } from 'lucide-react';
-import { Card } from '../../components/ui/card';
+import { useCallback,useEffect,useMemo,useState } from 'react';
 import { Button } from '../../components/ui/button';
-import { Badge } from '../../components/ui/badge';
+import { Card } from '../../components/ui/card';
 import { Separator } from '../../components/ui/separator';
 import { useToast } from '../../hooks/use-toast';
-import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../lib/supabase';
 import {
-  getShopBookings,
-  acceptBooking,
-  rejectBooking,
-  suggestBookingTime,
-  completeBooking,
-  getBookingsForSlotCheck,
-  getShopStaff,
+acceptBooking,
+completeBooking,
+getBookingsForSlotCheck,
+getShopBookings,
+getShopStaff,
+rejectBooking,
+suggestBookingTime,
 } from '../../lib/api';
-import { generateTimeSlots, type TimeSlot } from '../../lib/slotManagement';
+import { generateTimeSlots,type TimeSlot } from '../../lib/slotManagement';
+import { supabase } from '../../lib/supabase';
 import { generateWhatsAppReminderUrl } from '../../lib/whatsappService';
+import { useAuthStore } from '../../stores/authStore';
 import type { StaffMember } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -208,16 +221,7 @@ function SuggestTimeModal({
   }, [booking.services]);
 
   // Load slots when date changes
-  useEffect(() => {
-    if (!selectedDate || !shopId) {
-      setSlots([]);
-      setSelectedTime('');
-      return;
-    }
-    loadSlots();
-  }, [selectedDate]);
-
-  async function loadSlots() {
+  const loadSlots = useCallback(async () => {
     try {
       setLoadingSlots(true);
       setSelectedTime('');
@@ -254,7 +258,16 @@ function SuggestTimeModal({
     } finally {
       setLoadingSlots(false);
     }
-  }
+  }, [shopId, selectedDate, serviceDuration]);
+
+  useEffect(() => {
+    if (!selectedDate || !shopId) {
+      setSlots([]);
+      setSelectedTime('');
+      return;
+    }
+    loadSlots();
+  }, [selectedDate, shopId, loadSlots]);
 
   function handleConfirm() {
     if (!selectedDate || !selectedTime) {
@@ -509,7 +522,7 @@ export default function OwnerBookings() {
     } finally {
       setLoading(false);
     }
-  }, [user?.shopId]);
+  }, [user?.shopId, toast]);
 
   useEffect(() => { loadData(); }, [loadData]);
 

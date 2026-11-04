@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
-import {
-  Star, MessageSquare, PenTool, CheckCircle, ThumbsUp,
-  X, Sparkles, Award, ShieldCheck, Heart, User, Send
-} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+CheckCircle,
+MessageSquare,PenTool,
+Send,
+ShieldCheck,
+Sparkles,
+Star,
+ThumbsUp,
+X
+} from 'lucide-react';
+import React,{ useState } from 'react';
 
 export interface TestimonialReview {
   id: string;
@@ -28,7 +34,6 @@ interface ClientTestimonialsProps {
 }
 
 export function ClientTestimonialsSection({
-  shopId,
   shopName,
   averageRating,
   totalReviews,
@@ -213,7 +218,7 @@ export function ClientTestimonialsSection({
                           <h4 className="font-playfair font-bold text-white text-sm group-hover:text-gold transition-colors">
                             {review.customer_name}
                           </h4>
-                          <CheckCircle className="w-3.5 h-3.5 text-gold flex-shrink-0" title="Verified Client" />
+                          <CheckCircle className="w-3.5 h-3.5 text-gold flex-shrink-0" aria-label="Verified Client" />
                         </div>
                         <span className="text-[10px] text-white/30 font-inter">
                           Verified Client · {new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}

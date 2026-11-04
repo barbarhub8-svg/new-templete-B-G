@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
 import {
-  Instagram, Facebook, Globe, ExternalLink, Heart, MessageCircle,
-  Sparkles, Camera, CheckCircle2, ArrowUpRight, Grid3X3
+ArrowUpRight,
+Camera,CheckCircle2,
+Facebook,Globe,
+Heart,
+Instagram,
+MessageCircle
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface SocialPortfolioProps {
   shopName: string;

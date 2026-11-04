@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, Menu, X, Gift, Sparkles } from 'lucide-react';
-import { TemplateShowcaseModal, SalonTemplate } from '../ui/TemplateShowcaseModal';
+import { BookOpen,Gift,Menu,Sparkles,X } from 'lucide-react';
+import { useState } from 'react';
+import { Outlet,useLocation,useNavigate } from 'react-router-dom';
 import { TemplateLivePreviewModal } from '../ui/TemplateLivePreviewModal';
+import { TemplateShowcaseModal } from '../ui/TemplateShowcaseModal';
+import type { SalonTemplate } from '../ui/TemplateShowcaseModalData';
 
 export default function CustomerLayout() {
   const navigate = useNavigate();

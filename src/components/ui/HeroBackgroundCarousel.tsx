@@ -40,7 +40,7 @@ export function HeroBackgroundCarousel() {
             <img
               src={img.url}
               alt={img.alt}
-              className={`w-full h-full object-cover brightness-95 contrast-105 transition-transform duration-[6000ms] ease-out ${
+              className={`w-full h-full object-cover brightness-95 contrast-105 transition-transform [transition-duration:6000ms] ease-out ${
                 isActive ? 'scale-105' : 'scale-100'
               }`}
             />

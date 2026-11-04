@@ -4,19 +4,7 @@
 
 import { supabase } from './supabase';
 import { DUMMY_SHOP_DETAILS, DUMMY_STAFF_MEMBERS } from './dummyShopsData';
-import type { 
-  Shop, 
-  DbShop,
-  Service,
-  DbService,
-  Booking,
-  DbBooking,
-  Review,
-  DbReview,
-  WalletTransaction,
-  DbWalletTransaction,
-  StaffMember,
-} from '../types';
+import type { DbShop, DbService, StaffMember } from '../types';
 
 // =====================================================
 // SHOPS API
@@ -170,6 +158,7 @@ export async function addService(serviceData: {
   name: string;
   price: number;
   duration_minutes: number;
+  category?: string | null;
 }) {
   const { data, error } = await supabase
     .from('services')

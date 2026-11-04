@@ -1,21 +1,21 @@
+import {
+ArrowRight,
+Check,
+Clock,
+LogIn,
+Shield,
+Sparkles,
+Star,
+Store,
+TrendingUp
+} from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Store, LogIn, Sparkles, ArrowRight, Shield,
-  Star, Clock, TrendingUp, Check
-} from 'lucide-react';
-import { useAuthStore } from '../stores/authStore';
-import { useToast } from '../hooks/use-toast';
 import GmailOtpVerification from '../components/forms/GmailOtpVerification';
+import { useToast } from '../hooks/use-toast';
 import { getCurrentUser } from '../lib/auth';
 import { supabase } from '../lib/supabase';
-
-// ─── Shared input class ───────────────────────────────────────────────────────
-const inputCls =
-  'w-full bg-[#0A0A0A] border border-white/12 focus:border-gold/50 text-white placeholder-white/20 rounded-xl px-4 py-3 text-sm font-inter outline-none transition-all';
-
-const labelCls =
-  'text-white/40 text-[10px] font-semibold tracking-widest uppercase mb-2 block font-inter';
+import { useAuthStore } from '../stores/authStore';
 
 // ─── Feature list ─────────────────────────────────────────────────────────────
 const FEATURES = [

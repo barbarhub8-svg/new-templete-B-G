@@ -1,32 +1,47 @@
-import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Users, UserPlus, Search, Filter, Phone, Scissors,
-  Clock, Percent, Shield, MoreVertical, Edit2, Trash2,
-  CheckCircle2, XCircle, AlertCircle, Loader2, Sparkles,
-  Lock, Eye, ChevronDown, Check, RefreshCw, LayoutGrid, List, Download
+AlertCircle,
+Check,
+CheckCircle2,
+ChevronDown,
+Clock,
+Download,
+Edit2,
+Eye,
+LayoutGrid,List,
+Loader2,
+Lock,
+Phone,
+RefreshCw,
+Scissors,
+Search,
+Sparkles,
+Trash2,
+UserPlus,
+Users
 } from 'lucide-react';
-import { useAuthStore } from '../../stores/authStore';
+import { useCallback,useEffect,useMemo,useState } from 'react';
+import StaffDetailsModal from '../../components/staff/StaffDetailsModal';
+import StaffModal from '../../components/staff/StaffModal';
 import { useToast } from '../../hooks/use-toast';
 import {
-  getShopByOwnerId,
-  getShopServices,
+getShopByOwnerId,
+getShopServices,
 } from '../../lib/api';
 import {
-  getShopStaff,
-  createStaffMember,
-  updateStaffMember,
-  deactivateStaffMember,
-  reactivateStaffMember,
+createStaffMember,
+deactivateStaffMember,
+getShopStaff,
+reactivateStaffMember,
+updateStaffMember,
 } from '../../lib/staffService';
+import { useAuthStore } from '../../stores/authStore';
 import {
-  StaffMember,
-  StaffPrimaryRole,
-  StaffStatus,
-  DbService,
-  DbShop,
+DbService,
+DbShop,
+StaffMember,
+StaffPrimaryRole,
+StaffStatus,
 } from '../../types';
-import StaffModal from '../../components/staff/StaffModal';
-import StaffDetailsModal from '../../components/staff/StaffDetailsModal';
 
 const ALL_ROLES: (StaffPrimaryRole | 'All')[] = [
   'All',
@@ -74,13 +89,7 @@ export default function OwnerStaff() {
   const [deactivatingStaff, setDeactivatingStaff] = useState<StaffMember | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadData();
-    }
-  }, [user?.id]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!user?.id) return;
     try {
       setLoading(true);
@@ -112,7 +121,13 @@ export default function OwnerStaff() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadData();
+    }
+  }, [user?.id, loadData]);
 
   // Filter staff members
   const filteredStaff = useMemo(() => {

@@ -1,13 +1,30 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Clock, CheckCircle, XCircle, AlertCircle, Loader2, Scissors,
-  MapPin, Phone, Home, Store, IndianRupee, Calendar, ArrowLeft,
-  RefreshCw, Check, X, ChevronRight, Star, Sparkles, User, Mail
+AlertCircle,
+ArrowLeft,
+Calendar,
+Check,
+CheckCircle,
+ChevronRight,
+Clock,
+Home,
+IndianRupee,
+Loader2,
+Mail,
+MapPin,Phone,
+RefreshCw,
+Scissors,
+Sparkles,
+Star,
+Store,
+User,
+X,
+XCircle
 } from 'lucide-react';
+import { useCallback,useEffect,useState } from 'react';
+import { useNavigate,useParams } from 'react-router-dom';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
 import { Separator } from '../../components/ui/separator';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../lib/supabase';
@@ -160,7 +177,6 @@ function StatusTimeline({ status }: { status: BookingStatus }) {
       {TIMELINE_STEPS.map((item, i) => {
         const done = currentStep > item.step || (currentStep === item.step && currentStep > 0);
         const active = currentStep === item.step && item.step > 0;
-        const future = currentStep < item.step;
 
         return (
           <div key={item.label} className="flex items-center gap-2 flex-1">
@@ -278,11 +294,7 @@ export default function BookingStatusPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState(new Date());
 
-  useEffect(() => {
-    if (id) loadBooking();
-  }, [id]);
-
-  async function loadBooking() {
+  const loadBooking = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -306,7 +318,11 @@ export default function BookingStatusPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id, toast]);
+
+  useEffect(() => {
+    if (id) loadBooking();
+  }, [id, loadBooking]);
 
   async function handleAcceptSuggestion() {
     if (!booking) return;

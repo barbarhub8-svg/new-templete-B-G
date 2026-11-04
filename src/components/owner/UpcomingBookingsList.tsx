@@ -1,5 +1,4 @@
-import React from 'react';
-import { Bell, Clock, Calendar, MessageSquare } from 'lucide-react';
+import { Bell,Calendar,Clock,MessageSquare } from 'lucide-react';
 import { useToast } from '../../hooks/use-toast';
 
 export function UpcomingBookingsList({ bookings }: { bookings: any[] }) {

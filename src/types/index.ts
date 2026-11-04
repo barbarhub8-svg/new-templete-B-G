@@ -75,6 +75,7 @@ export interface Shop {
     end: string;
   };
   weeklyOff: string;
+  homeServiceAvailable: boolean;
   homeServiceCharge: number;
   serviceRadius: number;
   instagram_handle?: string;
@@ -100,7 +101,7 @@ export interface Review {
 export interface Booking {
   id: string;
   shopId?: string;
-  shopStatus: string;
+  shopStatus?: string;
   shopName: string;
   customerId: string;
   customerName: string;

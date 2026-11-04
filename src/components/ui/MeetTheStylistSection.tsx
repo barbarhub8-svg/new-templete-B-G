@@ -1,11 +1,23 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Star, Scissors, Award, Users, Phone, CheckCircle,
-  Sparkles, Calendar, ArrowRight, ShieldCheck, Heart, Grid3X3,
-  Clock, X, Sun, Moon, Check, Zap
-} from 'lucide-react';
 import type { StaffMember } from '@/types';
+import {
+ArrowRight,
+Award,
+Calendar,
+Check,
+CheckCircle,
+Clock,
+Grid3X3,
+Moon,
+Scissors,
+Sparkles,
+Star,
+Sun,
+Users,
+X,
+Zap
+} from 'lucide-react';
+import React,{ useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface MeetTheStylistSectionProps {
   staffList: StaffMember[];

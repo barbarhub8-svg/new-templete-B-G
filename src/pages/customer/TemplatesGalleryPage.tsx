@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { ArrowRight,Check,Crown,Eye,Shield,Sparkles,Zap } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sparkles, Eye, ArrowRight, Check, Layers, Crown, Shield, Zap } from 'lucide-react';
-import { SALON_TEMPLATES, SalonTemplate } from '../../components/ui/TemplateShowcaseModal';
 import { TemplateLivePreviewModal } from '../../components/ui/TemplateLivePreviewModal';
+import { SALON_TEMPLATES,SalonTemplate } from '../../components/ui/TemplateShowcaseModalData';
 
 export default function TemplatesGalleryPage() {
   const navigate = useNavigate();

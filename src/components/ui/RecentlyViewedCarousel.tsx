@@ -1,16 +1,23 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Clock, MapPin, Star, ChevronLeft, ChevronRight, ArrowRight,
-  Store, Trash2, Home, RotateCcw, Sparkles, Crown
-} from 'lucide-react';
-import {
-  RecentlyViewedSalon,
-  getRecentlyViewedSalons,
-  clearRecentlyViewedSalons,
-  restoreDefaultRecentlyViewed,
-  MAX_DISPLAYED
+MAX_DISPLAYED,
+RecentlyViewedSalon,
+clearRecentlyViewedSalons,
+getRecentlyViewedSalons,
+restoreDefaultRecentlyViewed
 } from '@/lib/recentlyViewed';
+import {
+ArrowRight,
+ChevronLeft,ChevronRight,
+Clock,
+Crown,
+Home,
+MapPin,
+RotateCcw,Sparkles,
+Star,
+Trash2
+} from 'lucide-react';
+import { useCallback,useEffect,useRef,useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function formatTimeAgo(timestamp: number): string {
   const diffSec = Math.floor((Date.now() - timestamp) / 1000);

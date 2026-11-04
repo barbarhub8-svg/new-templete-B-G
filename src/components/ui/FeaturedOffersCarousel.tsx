@@ -1,9 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
-import { useNavigate } from 'react-router-dom';
-import { Sparkles, Gift, Users, ArrowRight, Copy, Check, ChevronLeft, ChevronRight, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Autoplay from 'embla-carousel-autoplay';
+import useEmblaCarousel from 'embla-carousel-react';
+import { ArrowRight,Check,ChevronLeft,ChevronRight,Copy,Gift,Sparkles,Tag,Users } from 'lucide-react';
+import { useCallback,useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface OfferItem {
   id: number;
@@ -53,23 +53,11 @@ export function FeaturedOffersCarousel() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, align: 'start' },
     [Autoplay({ delay: 5000, stopOnInteraction: false })]
   );
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    emblaApi.on('select', onSelect);
-    onSelect();
-  }, [emblaApi, onSelect]);
 
   const scrollPrev = useCallback(() => {
     if (emblaApi) emblaApi.scrollPrev();

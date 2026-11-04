@@ -1,14 +1,29 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import {
-  Star, MapPin, Clock, Home, Store, Loader2, Search, X,
-  ArrowRight, Scissors, TrendingUp, Filter, SlidersHorizontal,
-  ChevronLeft, ChevronRight, ChevronDown, Grid3X3, List,
-  Award, CheckCircle, Crown
-} from 'lucide-react';
 import { getApprovedShops } from '@/lib/api';
-import { JAIPUR_PREMIER_SHOPS, FEATURED_NAIL_STUDIOS } from '@/lib/dummyShopsData';
+import { FEATURED_NAIL_STUDIOS,JAIPUR_PREMIER_SHOPS } from '@/lib/dummyShopsData';
 import { recordSalonVisit } from '@/lib/recentlyViewed';
+import {
+ArrowRight,
+Award,CheckCircle,
+ChevronDown,
+ChevronLeft,ChevronRight,
+Clock,
+Crown,
+Filter,
+Grid3X3,
+Home,
+List,
+Loader2,
+MapPin,
+Scissors,
+Search,
+SlidersHorizontal,
+Star,
+Store,
+TrendingUp,
+X
+} from 'lucide-react';
+import { useCallback,useEffect,useMemo,useRef,useState } from 'react';
+import { useNavigate,useSearchParams } from 'react-router-dom';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 
@@ -77,7 +92,7 @@ const BASE_DEMO_SHOPS = [
 
 const DUMMY_SHOPS = [...JAIPUR_PREMIER_SHOPS, ...FEATURED_NAIL_STUDIOS, ...BASE_DEMO_SHOPS];
 
-export const CATEGORY_ITEMS = [
+const CATEGORY_ITEMS = [
   { id: 'All', label: 'All Salons', icon: '✨' },
   { id: 'Nails Art Studio', label: 'Nails Art Studio', icon: '💅', primary: true },
   { id: 'Barbershop', label: 'Barbershop', icon: '💈' },
@@ -85,7 +100,6 @@ export const CATEGORY_ITEMS = [
   { id: 'Spa', label: 'Spa & Wellness', icon: '💆' },
 ];
 
-const CATEGORIES = CATEGORY_ITEMS.map(c => c.id);
 const PRICE_RANGES = [
   { label: 'All Prices', min: 0, max: Infinity },
   { label: 'Budget (Under ₹500)', min: 0, max: 500 },
@@ -265,7 +279,7 @@ function ShopListRow({ shop, onClick }: { shop: any; onClick: () => void }) {
 
 export default function SalonListingPage() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   const [rawShops, setRawShops] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
