@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { X, Monitor, Smartphone, Sparkles, ArrowRight, MapPin, Clock, Phone, Star, Copy, Check, Crown, Tag } from 'lucide-react';
-import { SalonTemplate } from './TemplateShowcaseModal';
-import { MeetTheStylistSection } from './MeetTheStylistSection';
-import { ReviewsSection } from './ReviewsSection';
-import { MultiViewBookingCalendarModal } from './MultiViewBookingCalendarModal';
-import { SocialPortfolioSection } from './SocialPortfolioSection';
-import { ObsidianGoldLuxury, OBSIDIAN_GOLD_TEMPLATE_ID } from '../templates/ObsidianGoldLuxury';
+import { ArrowRight,Check,Clock,Copy,Crown,MapPin,Monitor,Phone,Smartphone,Sparkles,Star,Tag,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
+import { useToast } from '../../hooks/use-toast';
+import { OBSIDIAN_GOLD_TEMPLATE_ID,ObsidianGoldLuxury } from '../templates/ObsidianGoldLuxury';
 import {
-  OBSIDIAN_GOLD_PREVIEW_SHOP,
-  OBSIDIAN_GOLD_PREVIEW_STAFF,
+OBSIDIAN_GOLD_PREVIEW_SHOP,
+OBSIDIAN_GOLD_PREVIEW_STAFF,
 } from '../templates/obsidianGoldPreviewData';
 import {
-  TEMPLATE_PREVIEW_BRANDS,
-  TEMPLATE_PREVIEW_THEMES,
-  formatINR,
-  type TemplatePreviewBrand,
-  type TemplatePreviewTheme,
+TEMPLATE_PREVIEW_BRANDS,
+TEMPLATE_PREVIEW_THEMES,
+formatINR,
+type TemplatePreviewBrand,
+type TemplatePreviewTheme,
 } from '../templates/templatePreviewData';
-import { useToast } from '../../hooks/use-toast';
+import { MeetTheStylistSection } from './MeetTheStylistSection';
+import { MultiViewBookingCalendarModal } from './MultiViewBookingCalendarModal';
+import { ReviewsSection } from './ReviewsSection';
+import { SocialPortfolioSection } from './SocialPortfolioSection';
+import type { SalonTemplate } from './TemplateShowcaseModalData';
 
 interface TemplateLivePreviewModalProps {
   isOpen: boolean;

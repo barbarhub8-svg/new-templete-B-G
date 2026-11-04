@@ -1,8 +1,7 @@
-import React from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Calendar, Wallet, Store, LogOut, Scissors, User, Users, Shield } from 'lucide-react';
-import { useAuthStore } from '../../stores/authStore';
+import { Calendar,LayoutDashboard,LogOut,Megaphone,Scissors,User,Users,Wallet } from 'lucide-react';
+import { NavLink,Outlet,useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
 
 export default function OwnerLayout() {
   const { logout, user } = useAuthStore();
@@ -24,6 +23,7 @@ export default function OwnerLayout() {
     { to: '/owner/services',  icon: Scissors,        label: 'Services',  allowed: !isServiceProvider },
     { to: '/owner/staff',     icon: Users,           label: 'Staff',     allowed: !isServiceProvider && !isReceptionist },
     { to: '/owner/wallet',    icon: Wallet,          label: 'Wallet',    allowed: !isServiceProvider && !isReceptionist },
+    { to: '/app/owner/marketing', icon: Megaphone, label: 'Marketing', allowed: !isServiceProvider && !isReceptionist },
     { to: '/owner/profile',   icon: User,            label: 'Profile',   allowed: true },
   ];
 

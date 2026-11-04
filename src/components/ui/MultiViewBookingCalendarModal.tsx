@@ -1,10 +1,16 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, X,
-  Check, ArrowRight, Sun, Moon, Zap, Users, Sparkles, CheckCircle,
-  BarChart2, Layers
+ArrowRight,
+Calendar as CalendarIcon,
+Check,
+ChevronLeft,ChevronRight,
+Clock,
+Layers,
+Sparkles,
+X,
+Zap
 } from 'lucide-react';
+import { useMemo,useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface MultiViewBookingCalendarModalProps {
   isOpen: boolean;

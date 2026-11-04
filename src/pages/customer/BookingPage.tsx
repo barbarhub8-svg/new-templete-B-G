@@ -1,21 +1,40 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
-  ArrowLeft, Home, Store, Clock, IndianRupee, CheckCircle,
-  Loader2, Scissors, Sun, Sunset, Moon, ChevronRight,
-  Phone, Mail, User, MapPin, AlertCircle, Check, Users, Sparkles,
-  X, Bell, Copy, Tag, Package as PackageIcon
+AlertCircle,
+ArrowLeft,
+Bell,
+Check,
+CheckCircle,
+ChevronRight,
+Clock,
+Copy,
+Home,
+IndianRupee,
+Loader2,
+Mail,
+MapPin,
+Moon,
+Package as PackageIcon,
+Phone,
+Scissors,
+Store,
+Sun,Sunset,
+Tag,
+User,
+Users,
+X
 } from 'lucide-react';
+import { useCallback,useEffect,useMemo,useRef,useState } from 'react';
+import { useLocation,useNavigate,useParams,useSearchParams } from 'react-router-dom';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
-import { Badge } from '../../components/ui/badge';
+import { Label } from '../../components/ui/label';
 import { Separator } from '../../components/ui/separator';
 import { useToast } from '../../hooks/use-toast';
-import { getShopById, getBookingsForSlotCheck, createBooking, getShopStaff } from '../../lib/api';
+import { createBooking,getBookingsForSlotCheck,getShopById,getShopStaff } from '../../lib/api';
+import { calculateTotalDuration,generateTimeSlots,type TimeSlot } from '../../lib/slotManagement';
 import { supabase } from '../../lib/supabase';
-import { generateTimeSlots, calculateTotalDuration, type TimeSlot } from '../../lib/slotManagement';
 import type { StaffMember } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -280,39 +299,7 @@ export default function BookingPage() {
 
   // ─── Load Shop and Staff ───────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (shopId) {
-      loadShopData();
-      loadStaffData();
-    }
-  }, [shopId]);
-
-  // Realtime subscription for instant staff availability & schedule sync
-  useEffect(() => {
-    if (!shopId || shopId.startsWith('dummy-')) return;
-
-    const channel = supabase
-      .channel(`staff-realtime-${shopId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'staff',
-          filter: `shop_id=eq.${shopId}`,
-        },
-        () => {
-          loadStaffData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [shopId]);
-
-  async function loadShopData() {
+  const loadShopData = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getShopById(shopId!);
@@ -363,9 +350,9 @@ export default function BookingPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [shopId, location.state, searchParams, toast, navigate]);
 
-  async function loadStaffData() {
+  const loadStaffData = useCallback(async () => {
     try {
       setLoadingStaff(true);
       const staffData = await getShopStaff(shopId!, true);
@@ -388,7 +375,39 @@ export default function BookingPage() {
     } finally {
       setLoadingStaff(false);
     }
-  }
+  }, [shopId, searchParams]);
+
+  useEffect(() => {
+    if (shopId) {
+      loadShopData();
+      loadStaffData();
+    }
+  }, [shopId, loadShopData, loadStaffData]);
+
+  // Realtime subscription for instant staff availability & schedule sync
+  useEffect(() => {
+    if (!shopId || shopId.startsWith('dummy-')) return;
+
+    const channel = supabase
+      .channel(`staff-realtime-${shopId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'staff',
+          filter: `shop_id=eq.${shopId}`,
+        },
+        () => {
+          loadStaffData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [shopId, loadStaffData]);
 
   // ─── Staff Schedule Check on Selected Date ─────────────────────────────────
 
@@ -460,21 +479,7 @@ export default function BookingPage() {
 
   // ─── Load Slots ─────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (selectedDate && shop && selectedServices.length > 0) {
-      if (isStaffOffOnSelectedDay) {
-        setAvailableSlots([]);
-        setSelectedTime('');
-      } else {
-        loadSlots();
-      }
-    } else {
-      setAvailableSlots([]);
-      setSelectedTime('');
-    }
-  }, [selectedDate, shop, selectedServices, selectedStaff, isStaffOffOnSelectedDay]);
-
-  async function loadSlots() {
+  const loadSlots = useCallback(async () => {
     try {
       setLoadingSlots(true);
       setSelectedTime('');
@@ -525,7 +530,21 @@ export default function BookingPage() {
     } finally {
       setLoadingSlots(false);
     }
-  }
+  }, [shop, selectedDate, selectedStaff, selectedServices, staffScheduleForSelectedDay, toast]);
+
+  useEffect(() => {
+    if (selectedDate && shop && selectedServices.length > 0) {
+      if (isStaffOffOnSelectedDay) {
+        setAvailableSlots([]);
+        setSelectedTime('');
+      } else {
+        loadSlots();
+      }
+    } else {
+      setAvailableSlots([]);
+      setSelectedTime('');
+    }
+  }, [selectedDate, shop, selectedServices, isStaffOffOnSelectedDay, loadSlots]);
 
   // ─── Derived values ─────────────────────────────────────────────────────────
 

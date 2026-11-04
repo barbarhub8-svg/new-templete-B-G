@@ -13,6 +13,16 @@ export default defineConfig({
   plugins: [
     react(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("/node_modules/@supabase/")) return "supabase-vendor";
+          if (/\/node_modules\/(react|react-dom|scheduler)\//.test(id)) return "react-vendor";
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

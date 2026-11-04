@@ -1,12 +1,17 @@
-import { useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Sparkles, Star, MapPin, IndianRupee, ArrowRight,
-  ChevronLeft, ChevronRight, Home, ShieldCheck, Check,
-  Compass, Filter, Crown, Award
-} from 'lucide-react';
 import { FEATURED_NAIL_STUDIOS } from '@/lib/dummyShopsData';
 import { recordSalonVisit } from '@/lib/recentlyViewed';
+import {
+ArrowRight,
+Award,
+ChevronLeft,ChevronRight,
+Crown,
+Home,
+MapPin,
+ShieldCheck,
+Sparkles,Star
+} from 'lucide-react';
+import { useMemo,useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface FeaturedNailStudiosProps {
   selectedLocation?: {

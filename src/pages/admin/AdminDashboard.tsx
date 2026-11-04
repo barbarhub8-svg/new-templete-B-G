@@ -1,17 +1,57 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
-  Store, BookOpen, IndianRupee, Star, Users, Loader2,
-  CheckCircle, Clock, XCircle, AlertCircle, RefreshCw,
-  ChevronUp, ChevronDown, Activity, Percent, Ban,
-  ShieldOff, ShieldCheck, X, Trash2, Eye, Search,
-  ChevronLeft, ChevronRight, TrendingUp, BarChart2,
-  Scissors, Home, Calendar, Plus, Edit2, Save, Image,
-  Globe, Phone, Mail, Instagram, Facebook, Twitter,
-  Settings, Upload, Layers, ExternalLink, Link
+Activity,
+AlertCircle,
+Ban,
+BarChart2,
+BookOpen,
+CheckCircle,
+ChevronDown,
+ChevronLeft,ChevronRight,
+ChevronUp,
+Edit2,
+ExternalLink,
+Eye,
+Facebook,
+Globe,
+Home,
+Image,
+IndianRupee,
+Instagram,
+Layers,
+Link,
+Loader2,
+Mail,
+Percent,
+Phone,
+Plus,
+RefreshCw,
+Save,
+Scissors,
+Search,
+Settings,
+ShieldCheck,
+ShieldOff,
+Star,
+Store,
+Trash2,
+TrendingUp,
+Twitter,
+Upload,
+Users,
+X,
+XCircle
 } from 'lucide-react';
+import { useCallback,useEffect,useMemo,useRef,useState } from 'react';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell
+Area,
+AreaChart,
+CartesianGrid,
+Cell,
+Pie,
+PieChart,
+ResponsiveContainer,
+Tooltip,
+XAxis,YAxis
 } from 'recharts';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../lib/supabase';
@@ -159,11 +199,7 @@ function ShopManageModal({ shop, onClose }: { shop: ShopRow; onClose: () => void
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    loadShopContent();
-  }, [shop.id]);
-
-  async function loadShopContent() {
+  const loadShopContent = useCallback(async () => {
     setLoading(true);
     const [svcRes, mediaRes] = await Promise.all([
       supabase.from('services').select('*').eq('shop_id', shop.id).order('created_at'),
@@ -172,7 +208,11 @@ function ShopManageModal({ shop, onClose }: { shop: ShopRow; onClose: () => void
     setServices(svcRes.data || []);
     setMedia(mediaRes.data || []);
     setLoading(false);
-  }
+  }, [shop.id]);
+
+  useEffect(() => {
+    loadShopContent();
+  }, [loadShopContent]);
 
   function startEdit(svc: ServiceRow) {
     setEditingId(svc.id);
@@ -776,7 +816,7 @@ function PlatformSettingsPanel() {
             { key: 'instagram_url', label: 'Instagram URL', icon: Instagram, placeholder: 'https://instagram.com/yourprofile' },
             { key: 'facebook_url', label: 'Facebook URL', icon: Facebook, placeholder: 'https://facebook.com/yourpage' },
             { key: 'twitter_url', label: 'Twitter / X URL', icon: Twitter, placeholder: 'https://twitter.com/yourhandle' },
-          ].map(({ key, label, icon: Icon, placeholder }) => (
+          ].map(({ key, icon: Icon, placeholder }) => (
             <div key={key} className="relative">
               <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
               <input
@@ -868,9 +908,9 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
-  useEffect(() => { loadAll(); }, []);
+  useEffect(() => { loadAll(); }, [loadAll]);
 
   async function loadStats() {
     const [shopsRes, bookingsRes, usersRes] = await Promise.all([
@@ -878,7 +918,7 @@ export default function AdminDashboard() {
       supabase.from('bookings').select('id,status,total_amount,created_at'),
       supabase.from('user_profiles').select('id,role'),
     ]);
-    const shopData = shopsRes.data || [];
+    const shopData: { status: string }[] = shopsRes.data || [];
     const bookData = bookingsRes.data || [];
     const userData = usersRes.data || [];
 

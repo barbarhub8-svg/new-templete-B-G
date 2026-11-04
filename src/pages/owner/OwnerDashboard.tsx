@@ -1,20 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
 import {
-  Calendar, TrendingUp, Clock, IndianRupee, Star,
-  Loader2, Store, CheckCircle, XCircle, AlertCircle,
-  ArrowRight, RefreshCw, Users, Scissors, MapPin,
-  Home, Zap, ChevronRight, Award, BarChart2
+AlertCircle,
+ArrowRight,BarChart2,Calendar,CheckCircle,ChevronRight,Clock,Gift,Home,IndianRupee,Loader2,MapPin,MessageCircle as MarketingMessageCircle,Sparkles as MarketingSparkles,RefreshCw,Scissors,Share2,Star,Store,TrendingUp,Users,XCircle,Zap
 } from 'lucide-react';
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar
-} from 'recharts';
-import { useAuthStore } from '../../stores/authStore';
+import { useCallback,useEffect,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getShopByOwnerId, getShopBookings, getWalletBalance, acceptBooking, rejectBooking } from '../../lib/api';
-import { useToast } from '../../hooks/use-toast';
+import {
+Area,
+AreaChart,
+Bar,
+BarChart,
+CartesianGrid,
+ResponsiveContainer,
+Tooltip,
+XAxis,YAxis
+} from 'recharts';
 import { ClientWaitlist } from '../../components/owner/ClientWaitlist';
 import { UpcomingBookingsList } from '../../components/owner/UpcomingBookingsList';
+import { useToast } from '../../hooks/use-toast';
+import { acceptBooking,getShopBookings,getShopByOwnerId,getWalletBalance,rejectBooking } from '../../lib/api';
+import { useAuthStore } from '../../stores/authStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -198,7 +202,7 @@ export default function OwnerDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user?.id]);
+  }, [user?.id, navigate, toast]);
 
   useEffect(() => { loadDashboard(); }, [loadDashboard]);
 
@@ -647,6 +651,10 @@ export default function OwnerDashboard() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {[
+            { label: 'Create Offer', icon: Gift, path: '/app/owner/marketing?section=create', color: 'text-amber-400', border: 'border-amber-400/20', bg: 'bg-amber-400/8' },
+            { label: 'AI Offer Creator', icon: MarketingSparkles, path: '/app/owner/marketing?section=ai', color: 'text-purple-400', border: 'border-purple-400/20', bg: 'bg-purple-400/8' },
+            { label: 'WhatsApp Campaign', icon: MarketingMessageCircle, path: '/app/owner/marketing?section=whatsapp', color: 'text-emerald-400', border: 'border-emerald-400/20', bg: 'bg-emerald-400/8' },
+            { label: 'Share on Social Media', icon: Share2, path: '/app/owner/marketing?section=share', color: 'text-blue-400', border: 'border-blue-400/20', bg: 'bg-blue-400/8' },
             { label: 'Manage Staff',    icon: Users,        path: '/owner/staff',    color: 'text-purple-400',   border: 'border-purple-400/20',   bg: 'bg-purple-400/8' },
             { label: 'Manage Bookings', icon: Calendar,     path: '/owner/bookings', color: 'text-gold',         border: 'border-gold/20',         bg: 'bg-gold/8' },
             { label: 'Manage Services', icon: Scissors,     path: '/owner/services', color: 'text-emerald-400',  border: 'border-emerald-400/20',   bg: 'bg-emerald-400/8' },

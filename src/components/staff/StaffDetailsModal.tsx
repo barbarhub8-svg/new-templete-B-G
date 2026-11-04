@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
-  X, User, Phone, Shield, Percent, Scissors, Clock,
-  Sparkles, CheckCircle2, AlertCircle, Edit, Calendar, Lock, TrendingUp, Star, Award, History, Activity, Download
+  X, User, Phone, Percent, Scissors, Clock,
+  Sparkles, CheckCircle2, Edit, Lock, TrendingUp, Star, Award, Activity, Download
 } from 'lucide-react';
 import {
   ResponsiveContainer, ComposedChart, BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend
@@ -18,7 +18,7 @@ interface StaffDetailsModalProps {
 
 // Generate realistic 30-day performance mock data for staff member
 function generateStaffPerformanceData(staffId: string) {
-  const data = [];
+  const data: { date: string; appointments: number; rating: number }[] = [];
   const today = new Date();
   
   const seed = staffId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -136,7 +136,7 @@ export default function StaffDetailsModal({
   const avg30DayRating = Number((performanceData.reduce((sum, d) => sum + d.rating, 0) / performanceData.length).toFixed(1));
   const activityLog = generateStaffActivityLog(staff);
 
-  function handleDownloadPDFReport() {
+  const handleDownloadPDFReport = () => {
     const assignedServicesList = assignedServices.map(s => `<li>${s.name} - ₹${s.price} (${s.duration_minutes} mins)</li>`).join('');
     const scheduleList = (staff.schedule || []).map(d => `<tr><td style="padding: 6px; border-bottom: 1px solid #eee;"><strong>${d.day}</strong></td><td style="padding: 6px; border-bottom: 1px solid #eee;">${d.is_working ? `${d.start_time} - ${d.end_time}` : 'Off'}</td></tr>`).join('');
     const specializationsList = (staff.specializations || []).map(s => `<span style="display: inline-block; background: #f3f4f6; padding: 4px 10px; border-radius: 12px; margin: 2px; font-size: 11px;">${s}</span>`).join('');
@@ -214,7 +214,7 @@ export default function StaffDetailsModal({
       printWindow.document.write(htmlContent);
       printWindow.document.close();
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm">

@@ -1,10 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
 import {
-  Gift, Users, Star, TrendingUp, Copy, Share2, Check,
-  Loader2, ChevronRight, Clock, AlertCircle, Wallet,
-  ArrowUpRight, ArrowDownLeft, RefreshCw, Search,
-  Sparkles, QrCode, IndianRupee, Trophy, Zap
+AlertCircle,
+ArrowDownLeft,
+ArrowUpRight,
+Check,
+Clock,
+Copy,
+Gift,
+Loader2,
+QrCode,
+RefreshCw,Search,
+Share2,
+Sparkles,
+Star,TrendingUp,
+Trophy,
+Users,
+Wallet,
+Zap
 } from 'lucide-react';
+import { useState } from 'react';
 import { useToast } from '../../hooks/use-toast';
 import { supabase } from '../../lib/supabase';
 

@@ -1,24 +1,39 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Star, MapPin, Clock, Home, IndianRupee, ArrowLeft, ChevronRight,
-  Loader2, Store, Phone, Video, X, ChevronLeft, Check, Scissors,
-  Info, Grid3X3, MessageSquare, PlayCircle, Award, Users, Calendar,
-  ZoomIn
+ArrowLeft,
+Award,
+Calendar,
+Check,
+ChevronRight,
+Clock,
+Grid3X3,
+Home,IndianRupee,
+Info,
+Loader2,
+MapPin,
+MessageSquare,
+Phone,
+PlayCircle,
+Scissors,
+Star,
+Store,
+Users,
+ZoomIn
 } from 'lucide-react';
+import { useCallback,useEffect,useMemo,useState } from 'react';
+import { useNavigate,useParams } from 'react-router-dom';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Separator } from '../../components/ui/separator';
-import { useToast } from '../../hooks/use-toast';
-import { getShopById, getShopStaff } from '../../lib/api';
-import type { StaffMember } from '../../types';
-import SalonLightbox from '../../components/ui/Lightbox';
-import { recordSalonVisit } from '../../lib/recentlyViewed';
-import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
 import { ClientTestimonialsSection } from '../../components/ui/ClientTestimonialsSection';
-import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
+import SalonLightbox from '../../components/ui/Lightbox';
+import { MeetTheStylistSection } from '../../components/ui/MeetTheStylistSection';
 import { MultiViewBookingCalendarModal } from '../../components/ui/MultiViewBookingCalendarModal';
+import { Separator } from '../../components/ui/separator';
+import { SocialPortfolioSection } from '../../components/ui/SocialPortfolioSection';
+import { useToast } from '../../hooks/use-toast';
+import { getShopById,getShopStaff } from '../../lib/api';
+import { recordSalonVisit } from '../../lib/recentlyViewed';
+import type { StaffMember } from '../../types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,24 +46,6 @@ const TABS: { id: TabId; label: string; icon: any }[] = [
   { id: 'reviews', label: 'Reviews', icon: MessageSquare },
   { id: 'gallery', label: 'Gallery', icon: Grid3X3 },
 ];
-
-// ─── Star Rating ──────────────────────────────────────────────────────────────
-
-function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) {
-  const cls = size === 'md' ? 'w-4 h-4' : 'w-3 h-3';
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          className={`${cls} ${i <= Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/30'}`}
-        />
-      ))}
-    </div>
-  );
-}
-
-
 
 // ─── Service Checkbox Card ────────────────────────────────────────────────────
 
@@ -122,7 +119,7 @@ export default function ShopDetailsPage() {
   const [portfolioImages, setPortfolioImages] = useState<string[]>([]);
 
   const staffPhotos = useMemo(() => {
-    return staffList.map(s => s.profile_photo_url).filter(Boolean) as string[];
+    return staffList.map(s => s.avatar_url).filter(Boolean) as string[];
   }, [staffList]);
 
   // Sidebar service selection
@@ -141,12 +138,7 @@ export default function ShopDetailsPage() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (shopId) loadShopDetails();
-    else navigate('/');
-  }, [shopId]);
-
-  async function loadShopDetails() {
+  const loadShopDetails = useCallback(async () => {
     try {
       setLoading(true);
       const [shopData, staffData] = await Promise.all([
@@ -163,23 +155,18 @@ export default function ShopDetailsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [shopId, navigate, toast]);
+
+  useEffect(() => {
+    if (shopId) loadShopDetails();
+    else navigate('/');
+  }, [shopId, navigate, loadShopDetails]);
 
   // ─── Lightbox helpers ───────────────────────────────────────────────────────
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index);
     setLightboxOpen(true);
-  }, []);
-
-  const closeLightbox = useCallback(() => setLightboxOpen(false), []);
-
-  const prevPhoto = useCallback(() => {
-    setLightboxIndex((i) => (i === 0 ? photos.length - 1 : i - 1));
-  }, []);
-
-  const nextPhoto = useCallback(() => {
-    setLightboxIndex((i) => (i === photos.length - 1 ? 0 : i + 1));
   }, []);
 
   // ─── Service toggle ─────────────────────────────────────────────────────────
@@ -943,42 +930,6 @@ export default function ShopDetailsPage() {
         openingTime={shop.opening_time}
         closingTime={shop.closing_time}
       />
-    </div>
-  );
-}
-
-// ─── Review Card ──────────────────────────────────────────────────────────────
-
-function ReviewCard({ review, full = false }: { review: any; full?: boolean }) {
-  return (
-    <div className={`${full ? 'border-b border-border last:border-0 pb-5 last:pb-0' : 'p-4 bg-secondary/40 rounded-xl'}`}>
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-              {review.customer_name?.charAt(0)?.toUpperCase() || 'C'}
-            </div>
-            <p className="font-semibold text-sm">{review.customer_name}</p>
-          </div>
-          <div className="flex items-center gap-1 ml-9">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-3 h-3 ${i < review.rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/20'}`}
-              />
-            ))}
-            <span className="text-xs text-muted-foreground ml-1">{review.rating}/5</span>
-          </div>
-        </div>
-        <span className="text-xs text-muted-foreground">
-          {new Date(review.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-        </span>
-      </div>
-      {review.comment && (
-        <p className={`text-sm text-muted-foreground leading-relaxed ml-9 ${!full ? 'line-clamp-2' : ''}`}>
-          {review.comment}
-        </p>
-      )}
     </div>
   );
 }

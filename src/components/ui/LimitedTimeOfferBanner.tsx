@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, X, ArrowRight, Tag, Clock } from 'lucide-react';
+import { ArrowRight,Sparkles,Tag,X } from 'lucide-react';
+import { useEffect,useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const OFFERS = [

@@ -1,11 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-  Clock, AlertCircle, CheckCircle, Home, Mail, Phone,
-  Loader2, RefreshCw, XCircle, FileText, ArrowRight
+AlertCircle,
+ArrowRight,
+CheckCircle,
+Clock,
+FileText,
+Home,
+Loader2,
+Mail,Phone,
+RefreshCw,XCircle
 } from 'lucide-react';
-import { useAuthStore } from '../../stores/authStore';
+import { useCallback,useEffect,useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
 
 // ─── Status Configuration ─────────────────────────────────────────────────────
 
@@ -194,7 +201,7 @@ export default function PendingApprovalPage() {
                 { step: 1, title: 'Admin Review', desc: 'Our team verifies shop details, documents, and images.', done: false },
                 { step: 2, title: 'Approval Decision', desc: "You'll be notified of the outcome within 24–48 hours.", done: false },
                 { step: 3, title: 'Go Live', desc: 'Once approved, your shop is listed publicly for bookings.', done: false },
-              ].map(({ step, title, desc, done }) => (
+              ].map(({ step, title, desc }) => (
                 <div key={step} className="flex gap-4">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold font-inter ${
                     step === 1 ? 'bg-gold/15 border border-gold/30 text-gold' : 'bg-white/5 border border-white/10 text-white/20'

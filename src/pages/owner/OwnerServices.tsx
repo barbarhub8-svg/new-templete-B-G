@@ -1,13 +1,14 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Loader2, Eye, EyeOff, Save, X } from 'lucide-react';
-import { Card } from '../../components/ui/card';
+import { Edit2,Eye,EyeOff,Loader2,Plus,Save,Trash2,X } from 'lucide-react';
+import { useCallback,useEffect,useState } from 'react';
+import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { Badge } from '../../components/ui/badge';
 import { useToast } from '../../hooks/use-toast';
+import { addService,deleteService,getShopByOwnerId,updateService } from '../../lib/api';
+import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { getShopByOwnerId, getShopServices, addService, updateService, deleteService } from '../../lib/api';
 
 export default function OwnerServices() {
   const { toast } = useToast();
@@ -26,13 +27,7 @@ export default function OwnerServices() {
   const [formDuration, setFormDuration] = useState('');
   const [formCategory, setFormCategory] = useState('');
 
-  useEffect(() => {
-    if (user?.id) {
-      loadData();
-    }
-  }, [user?.id]);
-
-  async function loadData() {
+  const loadData = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -51,9 +46,8 @@ export default function OwnerServices() {
       setShop(shopData);
       
       // Load services
-      const servicesData = await getShopServices(shopData.id);
       // Include inactive services for owner to manage
-      const { data: allServices } = await (await import('../../lib/supabase')).supabase
+      const { data: allServices } = await supabase
         .from('services')
         .select('*')
         .eq('shop_id', shopData.id)
@@ -70,7 +64,13 @@ export default function OwnerServices() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadData();
+    }
+  }, [user?.id, loadData]);
 
   function resetForm() {
     setFormName('');

@@ -43,6 +43,11 @@ export interface Shop {
   id: string;
   owner_id: string;
   name: string;
+  tagline?: string | null;
+  about_description?: string | null;
+  years_of_experience?: number | null;
+  speciality?: string | null;
+  contact_number?: string | null;
   address: string;
   city: string;
   latitude: number | null;

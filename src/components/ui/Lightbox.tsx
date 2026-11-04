@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { ChevronLeft,ChevronRight,X,ZoomIn,ZoomOut } from 'lucide-react';
+import React,{ useCallback,useEffect,useRef,useState } from 'react';
 
 interface LightboxProps {
   images: string[];

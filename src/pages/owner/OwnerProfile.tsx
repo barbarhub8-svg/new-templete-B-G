@@ -1,20 +1,37 @@
-import { useState, useEffect } from 'react';
-import { 
-  Store, MapPin, Clock, Home, Star, TrendingUp, Edit2, Save, X, 
-  Upload, Loader2, Trash2, Video, Image as ImageIcon, Sparkles, 
-  ExternalLink, CheckCircle2, Maximize2, Eye, ShieldCheck
+import {
+Clock,
+Edit2,
+ExternalLink,
+Eye,
+Home,
+Image as ImageIcon,
+Loader2,
+MapPin,
+Maximize2,
+Save,
+ShieldCheck,
+Sparkles,
+Star,
+Store,
+Trash2,
+TrendingUp,
+Upload,
+Video,
+X
 } from 'lucide-react';
-import { Card } from '../../components/ui/card';
+import { useCallback,useEffect,useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Badge } from '../../components/ui/badge';
 import { Button } from '../../components/ui/button';
+import { Card } from '../../components/ui/card';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Textarea } from '../../components/ui/textarea';
 import { useToast } from '../../hooks/use-toast';
-import { useAuthStore } from '../../stores/authStore';
-import { getShopByOwnerId, updateShop, addShopMedia, deleteShopMedia } from '../../lib/api';
-import { supabase } from '../../lib/supabase';
+import { addShopMedia,deleteShopMedia,getShopByOwnerId,updateShop } from '../../lib/api';
 import { autoResizeImage } from '../../lib/imageResizer';
+import { supabase } from '../../lib/supabase';
+import { useAuthStore } from '../../stores/authStore';
 
 export default function OwnerProfile() {
   const { toast } = useToast();
@@ -48,13 +65,7 @@ export default function OwnerProfile() {
   const [editFacebookHandle, setEditFacebookHandle] = useState('');
   const [editWebsiteUrl, setEditWebsiteUrl] = useState('');
 
-  useEffect(() => {
-    if (user?.id) {
-      loadShopData();
-    }
-  }, [user?.id]);
-
-  async function loadShopData() {
+  const loadShopData = useCallback(async () => {
     if (!user?.id) return;
     
     try {
@@ -82,7 +93,13 @@ export default function OwnerProfile() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [user?.id, toast]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadShopData();
+    }
+  }, [user?.id, loadShopData]);
 
   function initializeEditFields(shopData: any) {
     setEditName(shopData.name || '');
@@ -544,6 +561,7 @@ export default function OwnerProfile() {
 
   return (
     <div className="space-y-6">
+      <Link to="/app/owner/marketing" className="inline-flex items-center gap-2 rounded-lg border border-gold/20 px-4 py-3 text-sm text-gold hover:bg-gold/10">Marketing <span aria-hidden="true">→</span></Link>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold mb-2">Shop Profile</h1>
